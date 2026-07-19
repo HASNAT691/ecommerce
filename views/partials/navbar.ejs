@@ -152,76 +152,102 @@
   </nav>
 </header>
 
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar">
-    <div class="offcanvas-header border-bottom">
-      <h5 class="offcanvas-title">Menu</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body d-flex flex-column justify-content-between">
-      <ul class="navbar-nav">
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="#" id="offcanvasSearchIcon">
-            <i class="fa-solid fa-magnifying-glass me-2"></i>Search
-          </a>
-        </li>
-        <div class="position-relative px-3" id="offcanvasSearchContainer">
-          <input type="text" id="offcanvasSearchInput" class="form-control mt-2 d-none" placeholder="Search..."
-            style="width: 90%" />
-        </div>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/profile" data-bs-dismiss="offcanvas">
-            <i class="fa-regular fa-user me-2"></i>Account
-          </a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/secondpage?category=Kids" data-bs-dismiss="offcanvas">👶 Kids</a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/secondpage?category=Stitched" data-bs-dismiss="offcanvas">🧵 Stitched</a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/secondpage?category=Unstitched" data-bs-dismiss="offcanvas">🪡 Un-Stitched</a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/secondpage" data-bs-dismiss="offcanvas">📦 Categories</a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/secondpage?category=Ready-to-Wear" data-bs-dismiss="offcanvas">👗 Ready-To-Wear</a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/about-us" data-bs-dismiss="offcanvas">ℹ️ About-Us</a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/admin/login" data-bs-dismiss="offcanvas">
-            <i class="fa-solid fa-user-shield me-2"></i>Admin
-          </a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/track-order" data-bs-dismiss="offcanvas">
-            <i class="fa-solid fa-truck-fast me-2"></i>Track
-          </a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="https://wa.me/923457139939?text=Hi%2C%20I%20need%20assistance" target="_blank" data-bs-dismiss="offcanvas">
-            <i class="fa-brands fa-whatsapp me-2"></i>WhatsApp
-          </a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/wishlist" data-bs-dismiss="offcanvas">
-            <img src="images/wishlist_icon.png" height="20" class="me-2" />Wishlist
-          </a>
-        </li>
-        <li class="nav-item border-top">
-          <a class="nav-link py-2 text-secondary" href="/cart" data-bs-dismiss="offcanvas">
-            <img src="images/shopping_icon.png" height="20" class="me-2" />Cart
-            <span class="badge bg-danger rounded-pill ms-2" id="mobileCartCount">0</span>
-          </a>
-        </li>
-      </ul>
-      <div class="mt-4 text-center border-top pt-3">
-        <a href="#" class="text-dark me-3"><i class="fa-brands fa-facebook fa-lg"></i></a>
-        <a href="#" class="text-dark me-3"><i class="fa-brands fa-instagram fa-lg"></i></a>
-        <a href="#" class="text-dark"><i class="fa-brands fa-whatsapp fa-lg"></i></a>
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title">Menu</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body d-flex flex-column justify-content-between">
+    <ul class="navbar-nav">
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary" href="#" id="offcanvasSearchIcon">
+          <i class="fa-solid fa-magnifying-glass me-2"></i>Search
+        </a>
+      </li>
+      <div class="position-relative px-3" id="offcanvasSearchContainer">
+        <input type="text" id="offcanvasSearchInput" class="form-control mt-2 d-none" placeholder="Search..."
+          style="width: 90%" />
       </div>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/profile">
+          <i class="fa-regular fa-user me-2"></i>Account
+        </a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/secondpage?category=Kids">👶 Kids</a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/secondpage?category=Stitched">🧵 Stitched</a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/secondpage?category=Unstitched">🪡 Un-Stitched</a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/secondpage">📦 Categories</a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/secondpage?category=Ready-to-Wear">👗 Ready-To-Wear</a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/about-us">ℹ️ About-Us</a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/admin/login">
+          <i class="fa-solid fa-user-shield me-2"></i>Admin
+        </a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/track-order">
+          <i class="fa-solid fa-truck-fast me-2"></i>Track
+        </a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary" href="https://wa.me/923457139939?text=Hi%2C%20I%20need%20assistance" target="_blank">
+          <i class="fa-brands fa-whatsapp me-2"></i>WhatsApp
+        </a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/wishlist">
+          <img src="images/wishlist_icon.png" height="20" class="me-2" />Wishlist
+        </a>
+      </li>
+      <li class="nav-item border-top">
+        <a class="nav-link py-2 text-secondary mnl" href="/cart">
+          <img src="images/shopping_icon.png" height="20" class="me-2" />Cart
+          <span class="badge bg-danger rounded-pill ms-2" id="mobileCartCount">0</span>
+        </a>
+      </li>
+    </ul>
+    <div class="mt-4 text-center border-top pt-3">
+      <a href="#" class="text-dark me-3"><i class="fa-brands fa-facebook fa-lg"></i></a>
+      <a href="#" class="text-dark me-3"><i class="fa-brands fa-instagram fa-lg"></i></a>
+      <a href="#" class="text-dark"><i class="fa-brands fa-whatsapp fa-lg"></i></a>
     </div>
   </div>
+</div>
+
+<script>
+  // Mobile nav links: forcefully clear Bootstrap body locks then navigate
+  (function () {
+    function goTo(href) {
+      // Strip Bootstrap's body overflow locks immediately
+      document.body.removeAttribute('style');
+      document.body.removeAttribute('data-bs-overflow');
+      document.body.removeAttribute('data-bs-padding-right');
+      // Remove leftover backdrop overlays
+      document.querySelectorAll('.offcanvas-backdrop').forEach(function(el){ el.remove(); });
+      // Navigate
+      window.location.href = href;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.mnl').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          goTo(this.getAttribute('href'));
+        });
+      });
+    });
+  })();
+</script>

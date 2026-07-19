@@ -33,9 +33,19 @@
     margin-bottom: 20px;
   }
 
+  .product-img-wrapper {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #f5f5f5;
+    overflow: hidden;
+    border-radius: 8px 0 0 8px;
+  }
+
   .product-img {
-    height: 200px;
-    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: top center;
   }
 
   .summary-card {
@@ -123,12 +133,13 @@
           <% cart.items.forEach( (item, idx)=> { %>
             <div class="product-card card">
               <div class="row g-0">
-                <div class="col-md-4">
+                <div class="col-md-4 p-0">
+                  <div class="product-img-wrapper">
                   <!-- Bootstrap carousel – unique id per item -->
-                  <div id="car-<%= idx %>" class="carousel slide" data-bs-touch="false">
-                    <div class="carousel-inner">
+                  <div id="car-<%= idx %>" class="carousel slide h-100" data-bs-touch="false">
+                    <div class="carousel-inner h-100">
                       <% if (Array.isArray(item.picture)) { item.picture.forEach((img, i)=> { %>
-                        <div class="carousel-item <%= i === 0 ? 'active' : '' %>">
+                        <div class="carousel-item h-100 <%= i === 0 ? 'active' : '' %>">
                           <img src="<%= img.startsWith('http') ? img : '/uploads/' + img %>" class="d-block w-100 product-img" alt="image" />
                         </div>
                         <% }) } %>
@@ -144,6 +155,7 @@
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                       </button>
                       <% } %>
+                  </div>
                   </div>
                 </div>
                 <div class="col-md-8">

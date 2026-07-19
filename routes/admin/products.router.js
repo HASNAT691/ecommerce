@@ -153,9 +153,139 @@ router.get("/admin/dashboard", isAdminAuthenticated, async (req, res) => {
   }
 });
 
-// Analytics
+// Analytics page render
 router.get("/admin/analytics", isAdminAuthenticated, (req, res) => {
   res.render("pages/Admin_Pages/analytics", { layout: "admin-layout.ejs" });
+});
+
+// Analytics API for dynamic Chart.js stats
+router.get("/admin/api/analytics", isAdminAuthenticated, async (req, res) => {
+  try {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    // 1. Sales Performance (Last 6 months)
+    const salesData = await Order.aggregate([
+      { $match: { orderDate: { $gte: sixMonthsAgo }, status: { $ne: 'Cancelled' } } },
+      {
+        $group: {
+          _id: { year: { $year: '$orderDate' }, month: { $month: '$orderDate' } },
+          revenue: { $sum: '$total' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+
+    // 2. User Growth (Last 6 months)
+    const userData = await User.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+
+    // 3. Product Categories Performance
+    const categoryData = await Order.aggregate([
+      { $match: { status: { $ne: 'Cancelled' } } },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.productId',
+          foreignField: '_id',
+          as: 'productDetails'
+        }
+      },
+      { $unwind: '$productDetails' },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'productDetails.category',
+          foreignField: '_id',
+          as: 'categoryDetails'
+        }
+      },
+      { $unwind: '$categoryDetails' },
+      {
+        $group: {
+          _id: '$categoryDetails.categoryName',
+          productCount: { $addToSet: '$items.productId' },
+          revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+          quantitySold: { $sum: '$items.quantity' }
+        }
+      }
+    ]);
+
+    // 4. Sales Data List (recent items sold)
+    const recentSales = await Order.find({ status: { $ne: 'Cancelled' } })
+      .sort({ orderDate: -1 })
+      .limit(10)
+      .lean();
+
+    const salesList = [];
+    recentSales.forEach(order => {
+      order.items.forEach(item => {
+        salesList.push({
+          title: item.title,
+          quantity: item.quantity,
+          revenue: item.price * item.quantity,
+          region: order.shippingAddress.city || "Pakistan"
+        });
+      });
+    });
+
+    // 5. Build dynamic monthly labels and sync records
+    const labels = [];
+    const salesValues = [];
+    const userValues = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const label = d.toLocaleString('en-US', { month: 'short' });
+      labels.push(label);
+
+      const matchYear = d.getFullYear();
+      const matchMonth = d.getMonth() + 1;
+
+      const saleMatch = salesData.find(s => s._id.year === matchYear && s._id.month === matchMonth);
+      salesValues.push(saleMatch ? saleMatch.revenue : 0);
+
+      const userMatch = userData.find(u => u._id.year === matchYear && u._id.month === matchMonth);
+      userValues.push(userMatch ? userMatch.count : 0);
+    }
+
+    // 6. Format Category List
+    const allCategories = await Category.find().lean();
+    const categoriesList = allCategories.map(cat => {
+      const match = categoryData.find(c => c._id === cat.categoryName);
+      return {
+        name: cat.categoryName,
+        productCount: match ? match.productCount.length : 0,
+        revenue: match ? match.revenue : 0
+      };
+    });
+
+    res.json({
+      success: true,
+      labels,
+      salesValues,
+      userValues,
+      categoriesList,
+      salesList
+    });
+
+  } catch (error) {
+    console.error("API Analytics Error:", error);
+    res.status(500).json({ error: "Failed to gather analytics data" });
+  }
 });
 
 // --- ADMIN PRODUCTS MANAGEMENT ---

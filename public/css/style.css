@@ -185,3 +185,38 @@ body {
 .gallery {
     line-height: 0;
 }
+
+/* Mobile Responsive Overrides */
+@media (max-width: 768px) {
+    .gallery-section {
+        flex-direction: column;
+        min-height: auto;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .gallery-section img {
+        height: auto !important;
+        max-height: 55vh;
+    }
+    
+    /* Reposition landing page text panels statically on mobile */
+    .gallery-section .position-absolute {
+        position: relative !important;
+        transform: none !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin: 1.5rem !important;
+        max-width: calc(100% - 3rem) !important;
+        width: auto !important;
+        text-align: center !important;
+        backdrop-filter: none !important;
+        background-color: #fff !important;
+    }
+    
+    .dots {
+        display: none !important; /* Hide dot navigator on mobile */
+    }
+}

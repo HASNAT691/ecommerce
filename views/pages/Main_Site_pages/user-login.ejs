@@ -1,0 +1,109 @@
+<style>
+  :root {
+    --primary-sky: #87ceeb;
+    --secondary-sky: #4682b4;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f0f8ff, #e6f3ff);
+  }
+
+  .card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    background: linear-gradient(to right,
+        var(--primary-sky),
+        var(--secondary-sky));
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.5rem;
+  }
+
+  .form-control {
+    border-radius: 10px;
+    border: 2px solid #e1e1e1;
+    padding: 12px;
+  }
+
+  .form-control:focus {
+    border-color: var(--primary-sky);
+    box-shadow: 0 0 0 0.2rem rgba(135, 206, 235, 0.25);
+  }
+
+  .btn-primary {
+    background: linear-gradient(to right,
+        var(--primary-sky),
+        var(--secondary-sky));
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 600;
+    transition: transform 0.2s;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(to right,
+        var(--secondary-sky),
+        var(--primary-sky));
+  }
+
+  .btn-outline-primary {
+    color: var(--secondary-sky);
+    border-color: var(--secondary-sky);
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  .btn-outline-primary:hover {
+    background: var(--secondary-sky);
+    border-color: var(--secondary-sky);
+  }
+</style>
+
+<div class="container mt-5 pt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-center mb-0">Login Yourself</h3>
+        </div>
+        <div class="card-body p-4">
+          <% if (error) { %>
+            <div class="alert alert-danger rounded-pill">
+              <i class="bi bi-exclamation-circle me-2"></i>
+              <%= error %>
+            </div>
+            <% } %>
+              <form action="/user/login" method="POST">
+                <div class="mb-4">
+                  <label for="email" class="form-label">
+                    <i class="bi bi-envelope me-2"></i>Email
+                  </label>
+                  <input type="email" class="form-control" id="email" name="email" required />
+                </div>
+                <div class="mb-4">
+                  <label for="password" class="form-label">
+                    <i class="bi bi-lock me-2"></i>Password
+                  </label>
+                  <input type="password" class="form-control" id="password" name="password" required />
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mb-3">
+                  <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                </button>
+              </form>
+              <div class="mt-4 text-center">
+                <p class="text-muted">Don't have an account?</p>
+                <a href="/user/register" class="btn btn-outline-primary">
+                  <i class="bi bi-person-plus me-2"></i>Create New Account
+                </a>
+              </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

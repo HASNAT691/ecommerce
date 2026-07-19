@@ -1,0 +1,117 @@
+
+    <link rel="stylesheet" href="/css/adminAnalytics.css">
+
+    <div class="content-container">
+        <div class="container">
+            <!-- Row 1: Sales and User Stats -->
+            <div class="row">
+                <!-- Sales Performance Chart -->
+                <div class="col-md-6">
+                    <div class="section">
+                        <h2>Sales Performance</h2>
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Growth Chart -->
+                <div class="col-md-6">
+                    <div class="section">
+                        <h2>User Growth</h2>
+                        <div class="chart-container">
+                            <canvas id="userGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Product Categories Table and Product Performance Chart -->
+            <div class="row">
+                <!-- Product Categories Table -->
+                <div class="col-md-6">
+                    <div class="section">
+                        <h2>Product Categories</h2>
+                        <table class="table table-bordered data-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Products</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Clothing</td>
+                                    <td>200</td>
+                                    <td>$40,000</td>
+                                </tr>
+                                <tr>
+                                    <td>Shoes</td>
+                                    <td>150</td>
+                                    <td>$22,000</td>
+                                </tr>
+                                <tr>
+                                    <td>Cosmetics</td>
+                                    <td>80</td>
+                                    <td>$12,000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Product Performance Chart -->
+                <div class="col-md-6">
+                    <div class="section">
+                        <h2>Product Performance</h2>
+                        <div class="chart-container">
+                            <canvas id="productPerformanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: Sales Data Table -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="section">
+                        <h2>Sales Data</h2>
+                        <table class="table table-bordered data-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Region</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Product A</td>
+                                    <td>120</td>
+                                    <td>$12,000</td>
+                                    <td>North</td>
+                                </tr>
+                                <tr>
+                                    <td>Product B</td>
+                                    <td>80</td>
+                                    <td>$8,000</td>
+                                    <td>East</td>
+                                </tr>
+                                <tr>
+                                    <td>Product C</td>
+                                    <td>200</td>
+                                    <td>$25,000</td>
+                                    <td>West</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/js/adminAnalytics.js"></script>

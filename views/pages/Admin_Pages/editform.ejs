@@ -1,0 +1,223 @@
+<!-- ─────────  GLOBAL STYLES (same as Create) ───────── -->
+<style>
+  body {
+    background: linear-gradient(135deg, #f6f8f9 0%, #e5ebee 100%)
+  }
+
+  .form-control-underline {
+    border: none;
+    border-bottom: 2px solid #ced4da;
+    border-radius: 0
+  }
+
+  .form-control-underline:focus {
+    border-bottom-color: #4A90E2;
+    box-shadow: none
+  }
+
+  .btn-gradient {
+    background: linear-gradient(to right, #4A90E2, #6BDFFF);
+    color: #fff;
+    border: none
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(to right, #357ABD, #5AC8FA)
+  }
+
+  .drop-zone {
+    border: 2px dashed #4A90E2;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    color: #6c757d;
+    cursor: pointer;
+    transition: .2s
+  }
+
+  .drop-zone.dragover {
+    background: #e9f7fc
+  }
+</style>
+
+<div class="container py-5">
+  <h2 class="mb-4 fw-semibold"><i class="fas fa-edit me-2"></i>Edit Product</h2>
+
+  <form id="productForm" class="needs-validation" method="POST" enctype="multipart/form-data" novalidate>
+
+    <!-- Title -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Product Title</label>
+      <input type="text" name="title" class="form-control form-control-underline" required minlength="3" maxlength="100"
+        value="<%= product.title %>">
+    </div>
+
+    <!-- Description -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Description&nbsp;(100–150 words)</label>
+      <textarea name="description" id="desc" rows="5" class="form-control form-control-underline"
+        required><%= product.description %></textarea>
+      <div class="form-text" id="wordCount">0 words</div>
+    </div>
+
+    <!-- Price -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Price</label>
+      <input type="number" name="price" step="0.01" min="0" class="form-control form-control-underline" required
+        value="<%= product.price %>">
+    </div>
+
+
+    <div class="mb-3">
+      <label for="inStock" class="form-label fw-bold">In Stock Quantity</label>
+      <input type="number" class="form-control" id="inStock" name="inStock" placeholder="Enter quantity in stock"
+        min="0" value="<%= product.inStock %>" required />
+      <div class="invalid-feedback">Please provide the stock quantity.</div>
+    </div>
+
+
+    <!-- Drag-drop images -->
+
+    <!-- Existing images -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Current Images</label>
+      <div class="row g-3">
+        <% (product.images || []).forEach((img, i)=> { %>
+          <div class="col-auto text-center">
+            <img src="/<%= img %>" width="90" class="rounded shadow d-block">
+            <!-- replace single -->
+            <input type="file" name="replace_<%= i %>" accept=".jpg,.jpeg,.png,.pdf"
+              class="form-control form-control-sm mt-1">
+            <!-- remove -->
+            <div class="form-check mt-1">
+              <input class="form-check-input" type="checkbox" name="removeImages" value="<%= img %>" id="rm_<%= i %>">
+              <label class="form-check-label small" for="rm_<%= i %>">Remove</label>
+            </div>
+          </div>
+          <% }) %>
+      </div>
+    </div>
+
+    <!-- Add more -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Add More Images</label>
+      <div id="dropZone" class="drop-zone mb-2">
+        <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i><br>Drag & drop or click
+      </div>
+      <input type="file" name="files" id="fileInp" multiple class="d-none" accept=".jpg,.jpeg,.png,.pdf">
+      <div id="fileName" class="form-text"></div>
+    </div>
+
+
+
+    <!-- Category -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Category</label>
+      <select name="category" id="catSel" class="form-select" required>
+        <option value="">Select category</option>
+        <% categories.forEach(cat=> { %>
+          <option value="<%= cat._id %>" data-subs="<%= cat.subcategories.join('|') %>" <%=product.category &&
+            product.category.toString()===cat._id.toString() ? 'selected' : '' %>>
+            <%= cat.categoryName %>
+          </option>
+          <% }) %>
+      </select>
+    </div>
+
+    <!-- Subcategories -->
+    <div id="subWrap" class="mb-3" style="display:none">
+      <label class="form-label fw-bold d-block">Subcategories</label>
+      <div id="subChk" class="mb-2"></div>
+
+      <!-- Add-new subcategory inline -->
+      <div class="input-group w-50">
+        <input type="text" id="newSubInput" class="form-control form-control-underline"
+          placeholder="Add new subcategory">
+        <button class="btn btn-sm btn-outline-primary" id="addSubBtn" type="button">Add</button>
+      </div>
+    </div>
+
+    <!-- Featured toggle -->
+    <div class="form-check form-switch mb-4 ms-2">
+      <input class="form-check-input" type="checkbox" name="isFeatured" id="feat" <%=product.isFeatured ? "checked" : ""
+        %>>
+      <label class="form-check-label" for="feat">Featured Product</label>
+    </div>
+
+    <button class="btn btn-gradient w-100">
+      <i class="fas fa-save me-2"></i>Update Product
+    </button>
+  </form>
+</div>
+
+<!-- ───── SCRIPT ───── -->
+<script>
+  /* Inject existing subcategories from server */
+  const existingSubs = JSON.parse(
+    '<%- JSON.stringify((product && product.subcategories) || []) %>'
+  );
+
+  /* drag-drop for “add more” */
+  const dz = document.getElementById('dropZone'), fi = document.getElementById('fileInp'), t = document.getElementById('fileName');
+  dz.addEventListener('click', () => fi.click());
+  ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('dragover'); }));
+  ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, () => dz.classList.remove('dragover')));
+  dz.addEventListener('drop', e => { e.preventDefault(); fi.files = e.dataTransfer.files; show(); });
+  fi.addEventListener('change', show);
+  function show() { t.textContent = [...fi.files].map(f => f.name).join(', '); }
+
+  /* Sub-category rendering */
+  const subWrap = document.getElementById("subWrap"),
+    subChk = document.getElementById("subChk"),
+    catSel = document.getElementById("catSel"),
+    newInp = document.getElementById("newSubInput"),
+    addBtn = document.getElementById("addSubBtn");
+
+  function render(arr) {
+    subChk.innerHTML = "";
+    arr.forEach(s => {
+      const uid = "sub_" + s.replace(/\\s+/g, "_");
+      const checked = existingSubs.includes(s) ? "checked" : "";
+      subChk.insertAdjacentHTML("beforeend",
+        `<div class='form-check d-inline mx-2'>
+           <input class='form-check-input' type='checkbox' name='subcategories'
+                  value='${s}' id='${uid}' ${checked}>
+           <label class='form-check-label fw-bold' for='${uid}'>${s}</label>
+         </div>`);
+    });
+    subWrap.style.display = arr.length ? "block" : "none";
+  }
+
+  function loadSubs() {
+    const opt = catSel.selectedOptions[0];
+    if (!opt) { subWrap.style.display = "none"; return; }
+    const arr = (opt.dataset.subs || "").split("|").filter(Boolean);
+    render(arr);
+  }
+  catSel.addEventListener("change", loadSubs);
+  loadSubs();                        // initial render on page load
+
+  /* Add new subcategory inline */
+  addBtn.addEventListener("click", () => {
+    const val = newInp.value.trim();
+    if (!val) return;
+    // visual checkbox
+    existingSubs.push(val);          // ensure checked by default
+    render([...new Set([...subChk.querySelectorAll("label")].map(el => el.textContent).concat(val))]);
+
+    // hidden input for server
+    const hidden = document.createElement("input");
+    hidden.type = "hidden";
+    hidden.name = "newSubcategories";
+    hidden.value = val;
+    document.getElementById("productForm").appendChild(hidden);
+
+    newInp.value = "";
+  });
+
+  /* Bootstrap validation */
+  document.getElementById("productForm").addEventListener("submit", e => {
+    if (!e.target.checkValidity()) { e.preventDefault(); e.stopPropagation(); }
+    e.target.classList.add("was-validated");
+  });
+</script>

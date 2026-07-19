@@ -1,0 +1,337 @@
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .product-card-detail {
+        background-color: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, .05);
+        padding: 2rem;
+    }
+
+    .product-image-carousel .carousel-item img {
+        width: 100%;
+        height: 500px;
+        /* Fixed height for consistent display */
+        object-fit: cover;
+        border-radius: 0.75rem;
+    }
+
+    .product-image-carousel .carousel-indicators button {
+        background-color: #0d6efd;
+        /* Bootstrap primary color */
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin: 0 5px;
+    }
+
+    .similar-products-section .product-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .05);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .similar-products-section .product-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .similar-products-section .product-card img {
+        height: 250px;
+        object-fit: cover;
+        border-top-left-radius: 0.75rem;
+        border-top-right-radius: 0.75rem;
+    }
+
+    .product-detail-price {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #343a40;
+    }
+
+    .product-stock {
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+    }
+
+    .size-button {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        background-color: #fff;
+        color: #495057;
+    }
+
+    .size-button:hover,
+    .size-button.selected {
+        background-color: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd;
+    }
+
+    .btn-add-to-cart {
+        font-size: 1.1rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+    }
+
+    .alert-message-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1050;
+    }
+
+    .alert-message {
+        background-color: #28a745;
+        /* Default for success */
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: none;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    }
+
+    .alert-message.show {
+        display: block;
+        opacity: 1;
+    }
+</style>
+<div class="container my-5">
+    <div class="product-card-detail">
+        <div class="row g-5">
+            <div class="col-md-7">
+                <!-- Product Image Carousel -->
+                <div id="productImageCarousel" class="carousel slide product-image-carousel" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <% product.images.forEach((image, index)=> { %>
+                            <button type="button" data-bs-target="#productImageCarousel" data-bs-slide-to="<%= index %>"
+                                class="<%= index === 0 ? 'active' : '' %>"
+                                aria-current="<%= index === 0 ? 'true' : 'false' %>"
+                                aria-label="Slide <%= index + 1 %>"></button>
+                            <% }); %>
+                    </div>
+                    <div class="carousel-inner">
+                        <% product.images.forEach((image, index)=> { %>
+                            <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
+                                <img src="<%= image.startsWith('http') ? image : '/uploads/' + image %>" class="d-block w-100"
+                                    alt="<%= product.title %> Image <%= index + 1 %>"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/800x1000/f0f0f0/333333?text=No+Image';">
+                            </div>
+                            <% }); %>
+                    </div>
+                    <% if (product.images.length> 1) { %>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel"
+                            data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel"
+                            data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                        <% } %>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <h1 class="mb-3">
+                    <%= product.title %>
+                </h1>
+                <p class="product-detail-price">PKR <%= product.price.toFixed(2) %>
+                </p>
+                <p class="product-stock <%= product.inStock > 0 ? 'text-success' : 'text-danger' %>">
+                    <i class="fas <%= product.inStock > 0 ? 'fa-check-circle' : 'fa-times-circle' %> me-2"></i>
+                    <%= product.inStock> 0 ? 'In Stock' : 'Out of Stock' %> (<span id="stockCount">
+                            <%= product.inStock %>
+                        </span> available)
+                </p>
+
+                <h5 class="mb-2">Description:</h5>
+                <p class="text-muted">
+                    <%= product.description || "No description available." %>
+                </p>
+
+                <% if (product.subcategories && product.subcategories.length> 0) { %>
+                    <div class="mb-4">
+                        <h5 class="mb-2">Available Sizes/Variations:</h5>
+                        <% product.subcategories.forEach(sub=> { %>
+                            <button class="size-button" data-size="<%= sub %>">
+                                <%= sub %>
+                            </button>
+                            <% }); %>
+                    </div>
+                    <% } %>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary btn-lg btn-add-to-cart" id="addToCartBtn"
+                                data-product-id="<%= product._id %>" <%=product.inStock===0 ? 'disabled' : '' %>>
+                                <i class="fas fa-shopping-bag me-2"></i>
+                                <%= product.inStock===0 ? 'Out of Stock' : 'Add to Bag' %>
+                            </button>
+                            <button class="btn btn-outline-danger btn-lg add-to-wishlist"
+                                data-product-id="<%= product._id %>">
+                                <i class="far fa-heart me-2"></i>Add to Wishlist
+                            </button>
+                        </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Similar Products Section -->
+    <div class="similar-products-section mt-5 py-4">
+        <h3 class="mb-4 text-center">Similar Products You Might Like</h3>
+        <% if (similarProducts && similarProducts.length> 0) { %>
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+                <% similarProducts.forEach(similarProduct=> { %>
+                    <div class="col">
+                        <div class="card h-100 product-card">
+                            <% if (similarProduct.images && similarProduct.images.length> 0) { %>
+                                <img src="<%= similarProduct.images[0].startsWith('http') ? similarProduct.images[0] : '/uploads/' + similarProduct.images[0] %>" class="card-img-top"
+                                    alt="<%= similarProduct.title %>"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/400x500/f0f0f0/333333?text=No+Image';">
+                                <% } else { %>
+                                    <img src="https://placehold.co/400x500/f0f0f0/333333?text=No+Image"
+                                        class="card-img-top" alt="No Image Available">
+                                    <% } %>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">
+                                                <%= similarProduct.title %>
+                                            </h5>
+                                            <p class="card-text">PKR <%= similarProduct.price.toFixed(2) %>
+                                            </p>
+                                            <a href="/product/<%= similarProduct._id %>"
+                                                class="btn btn-sm btn-outline-primary">View Details</a>
+                                        </div>
+                        </div>
+                    </div>
+                    <% }); %>
+            </div>
+            <% } else { %>
+                <p class="text-center text-muted">No similar products found.</p>
+                <% } %>
+    </div>
+</div>
+
+<!-- Custom Alert Message Container -->
+<div class="alert-message-container">
+    <div id="customAlert" class="alert-message"></div>
+</div>
+
+<script>
+    // Custom Alert Function (replaces window.alert)
+    function showAlert(message, type = "success") {
+        let alertContainer = document.querySelector('.alert-message-container');
+        if (!alertContainer) {
+            alertContainer = document.createElement('div');
+            alertContainer.className = 'alert-message-container';
+            alertContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 1050;';
+            document.body.appendChild(alertContainer);
+        }
+
+        let alertBox = document.getElementById('customAlert');
+        if (!alertBox) {
+            alertBox = document.createElement('div');
+            alertBox.id = 'customAlert';
+            alertBox.className = 'alert-message';
+            alertBox.style.cssText = 'background-color: #28a745; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); display: none; opacity: 0; transition: opacity 0.5s ease-in-out;';
+            alertContainer.appendChild(alertBox);
+        }
+
+        alertBox.textContent = message;
+
+        if (type === 'success') { alertBox.style.backgroundColor = '#28a745'; alertBox.style.color = 'white'; }
+        else if (type === 'error') { alertBox.style.backgroundColor = '#dc3545'; alertBox.style.color = 'white'; }
+        else if (type === 'info') { alertBox.style.backgroundColor = '#17a2b8'; alertBox.style.color = 'white'; }
+        else if (type === 'warning') { alertBox.style.backgroundColor = '#ffc107'; alertBox.style.color = '#343a40'; }
+
+        alertBox.style.display = 'block';
+        alertBox.style.opacity = 1;
+
+        setTimeout(() => {
+            alertBox.style.opacity = 0;
+            setTimeout(() => { alertBox.style.display = 'none'; }, 500); // Hide after transition
+        }, 3000);
+    }
+
+    // Add to Cart Logic
+    document.getElementById('addToCartBtn').addEventListener('click', async function () {
+        const productId = this.dataset.productId;
+        if (this.disabled) {
+            showAlert("This product is out of stock.", "warning");
+            return;
+        }
+
+        try {
+            const response = await fetch('/add-to-cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                showAlert('Product added to cart!', 'success');
+            } else {
+                showAlert(data.error || 'Failed to add product to cart.', 'error');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            showAlert('An unexpected error occurred.', 'error');
+        }
+    });
+
+    // Add to Wishlist Logic
+    document.querySelector('.add-to-wishlist').addEventListener('click', async function (e) {
+        e.preventDefault();
+        const productId = this.dataset.productId; // Get product ID from wishlist button
+
+        try {
+            const response = await fetch('/add-to-wishlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ productId })
+            });
+
+            if (response.status === 401) {
+                if (confirm('Please log in to use wishlist features. Go to login page?')) {
+                    window.location.href = '/user/login';
+                }
+                return;
+            }
+
+            const result = await response.json();
+            showAlert(result.message, result.success ? 'success' : 'error');
+
+            if (result.success) {
+                this.querySelector('i').classList.add('fas', 'text-danger');
+                this.querySelector('i').classList.remove('far');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('An error occurred while adding to wishlist', 'error');
+        }
+    });
+
+    // Size selection logic
+    document.querySelectorAll('.size-button').forEach(button => {
+        button.addEventListener('click', function () {
+            // Remove 'selected' from all other buttons
+            document.querySelectorAll('.size-button').forEach(btn => btn.classList.remove('selected'));
+            // Add 'selected' to the clicked button
+            this.classList.add('selected');
+            // You might want to store the selected size (e.g., in a hidden input for form submission)
+            // or pass it to addToCart if your cart logic handles variations
+        });
+    });
+</script>

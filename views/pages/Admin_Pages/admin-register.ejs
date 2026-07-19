@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Admin Registration</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #818cf8;
+            --background: #f8fafc;
+            --text-dark: #1e293b;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+        }
+
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            padding: 2.5rem;
+        }
+
+        .form-label {
+            color: var(--text-dark);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.875rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px #c7d2fe;
+        }
+
+        .input-group-text {
+            background: transparent;
+            border: 2px solid #e2e8f0;
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 12px;
+            padding: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold" style="color: var(--text-dark);">Create Admin Account</h3>
+                <p class="text-muted small">Register dashboard admin for AL-REHAN GARMENTS</p>
+            </div>
+            <form action="/admin/register" method="POST">
+                <!-- Hidden input to carry the secret key from the URL -->
+                <input type="hidden" name="secret" value="<%= secret %>">
+
+                <div class="mb-4">
+                    <label for="registerUsername" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control" id="registerUsername" name="username" placeholder="Choose a username" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="registerPassword" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="registerPassword" name="password" placeholder="Create a password" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Repeat your password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Register Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerPassword = document.getElementById('registerPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
+            confirmPassword.addEventListener('input', function() {
+                if (registerPassword.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Passwords do not match');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

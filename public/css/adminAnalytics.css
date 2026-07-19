@@ -1,0 +1,49 @@
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f1f1f1;
+    margin: 0;
+    padding: 0;
+}
+
+.content-container {
+    padding: 20px;
+    background-color: #00bfff; /* Sky Blue background */
+    min-height: 100vh;
+}
+
+.section {
+    background-color: white;
+    padding: 15px; /* Reduced padding for a compact look */
+    margin-bottom: 20px; /* Reduced bottom margin */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #333;
+    font-size: 1.25rem; /* Slightly smaller heading size */
+}
+
+.data-table th, .data-table td {
+    padding: 8px; /* Reduced padding for compact table cells */
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #00bfff;
+    color: white;
+}
+
+.chart-container {
+    position: relative;
+    height: 250px; /* Reduced chart height */
+    margin-bottom: 20px;
+}
+
+/* Styling for small devices */
+@media (max-width: 767px) {
+    .chart-container {
+        height: 200px; /* Even smaller height for mobile devices */
+    }
+}

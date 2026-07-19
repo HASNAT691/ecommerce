@@ -1,0 +1,791 @@
+<style>
+  body {
+    font-family: "Inter", sans-serif;
+    background-color: #f8f9fa;
+  }
+
+  .profile-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    border-radius: 0.5rem;
+  }
+
+  .profile-card {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .nav-pills .nav-link {
+    border-radius: 0.5rem;
+    color: #495057;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .nav-pills .nav-link.active {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .nav-pills .nav-link:hover:not(.active) {
+    background-color: #e9ecef;
+    color: #007bff;
+  }
+
+  .tab-content {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .form-control,
+  .btn {
+    border-radius: 0.3rem;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .order-item,
+  .address-item {
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #fcfcfc;
+  }
+
+  .order-status-badge {
+    font-size: 0.8em;
+    padding: 0.3em 0.6em;
+    border-radius: 0.75rem;
+  }
+
+  .alert-message-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+  }
+
+  .alert-message {
+    background-color: #28a745;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+  }
+
+  .alert-message.show {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Styles for the modal */
+  .modal-content {
+    border-radius: 0.5rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .modal-header {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+  }
+
+  .modal-title {
+    font-weight: 600;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+  }
+</style>
+
+<div class="container-fluid profile-header">
+  <div class="container">
+    <h1 class="display-4 text-center mb-0">My Account</h1>
+    <p class="lead text-center text-muted">
+      Manage your profile, orders, and addresses.
+    </p>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="row">
+    <div class="col-lg-3">
+      <!-- Sidebar Navigation / Tabs -->
+      <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+        <button class="nav-link active text-start py-3 mb-2" id="v-pills-profile-tab" data-bs-toggle="pill"
+          data-bs-target="#v-pills-profile" type="button" role="tab" aria-controls="v-pills-profile"
+          aria-selected="true">
+          <i class="fas fa-user me-2"></i> Personal Details
+        </button>
+        <button class="nav-link text-start py-3 mb-2" id="v-pills-orders-tab" data-bs-toggle="pill"
+          data-bs-target="#v-pills-orders" type="button" role="tab" aria-controls="v-pills-orders"
+          aria-selected="false">
+          <i class="fas fa-box me-2"></i> My Orders
+        </button>
+        <button class="nav-link text-start py-3 mb-2" id="v-pills-addresses-tab" data-bs-toggle="pill"
+          data-bs-target="#v-pills-addresses" type="button" role="tab" aria-controls="v-pills-addresses"
+          aria-selected="false">
+          <i class="fas fa-map-marker-alt me-2"></i> Saved Addresses
+        </button>
+        <button class="nav-link text-start py-3 mb-2 text-danger" onclick="logoutUser()">
+          <i class="fas fa-sign-out-alt me-2"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="tab-content" id="v-pills-tabContent">
+        <!-- Personal Details Tab -->
+        <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel"
+          aria-labelledby="v-pills-profile-tab">
+          <h4 class="mb-4">Personal Information</h4>
+          <form id="profileForm">
+            <div class="mb-3">
+              <label for="userName" class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="userName" value="<%= user ? user.name : '' %>" disabled />
+            </div>
+            <div class="mb-3">
+              <label for="userEmail" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="userEmail" value="<%= user ? user.email : '' %>" disabled />
+            </div>
+            <div class="mb-3">
+              <label for="userPhone" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="userPhone" value="<%= user ? user.phone || '' : '' %>"
+                disabled />
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-outline-primary me-2" id="editProfileBtn" onclick="editProfile()">
+                <i class="fas fa-edit me-1"></i> Edit Profile
+              </button>
+              <button type="submit" class="btn btn-primary d-none" id="saveProfileBtn">
+                <i class="fas fa-save me-1"></i> Save Changes
+              </button>
+              <button type="button" class="btn btn-secondary d-none" id="cancelEditBtn" onclick="cancelEdit()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- My Orders Tab -->
+        <div class="tab-pane fade" id="v-pills-orders" role="tabpanel" aria-labelledby="v-pills-orders-tab">
+          <h4 class="mb-4">My Orders</h4>
+          <div id="orderList">
+            <% if (orders && orders.length> 0) { %> <% orders.forEach(order=>
+                { %>
+                <div class="order-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5>
+                      Order #<%= order._id.toString().slice(-6) %>
+                        <span
+                          class="badge <%= order.status === 'Delivered' ? 'bg-success' : (order.status === 'Processing' ? 'bg-warning text-dark' : 'bg-danger') %> order-status-badge">
+                          <%= order.status %>
+                        </span>
+                    </h5>
+                    <p class="mb-1">
+                      Date: <%= new Date(order.orderDate).toLocaleDateString() %> |
+                        Total: Rs. <%= order.total.toFixed(2) %>
+                    </p>
+                    <small class="text-muted">Items: <%= order.items.map(item=> item.title).join(', ')
+                        %></small>
+                  </div>
+                  <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDetails('<%= order._id %>')">
+                      View Details
+                    </button>
+                  </div>
+                </div>
+                <% }); %>
+                  <% } else { %>
+                    <div class="text-center py-5 text-muted">
+                      <i class="fas fa-box-open fa-3x mb-3"></i>
+                      <p class="lead">You haven't placed any orders yet.</p>
+                      <a href="/secondpage" class="btn btn-primary">Start Shopping</a>
+                    </div>
+                    <% } %>
+          </div>
+        </div>
+
+        <!-- Saved Addresses Tab -->
+        <div class="tab-pane fade" id="v-pills-addresses" role="tabpanel" aria-labelledby="v-pills-addresses-tab">
+          <h4 class="mb-4">Saved Addresses</h4>
+          <div id="addressList">
+            <% if (user && user.addresses && user.addresses.length> 0) { %> <% user.addresses.forEach(address=> { %>
+                <div class="address-item" data-address-id="<%= address._id %>">
+                  <h5>
+                    <%= address.name %>
+                      <span class="badge <%= address.isDefault ? 'bg-primary' : 'bg-secondary' %> order-status-badge">
+                        <%= address.isDefault ? 'Default' : 'Other' %>
+                      </span>
+                  </h5>
+                  <p class="mb-1">
+                    <%= address.addressLine1 %>
+                  </p>
+                  <% if (address.addressLine2) { %>
+                    <p class="mb-1">
+                      <%= address.addressLine2 %>
+                    </p>
+                    <% } %>
+                      <p class="mb-1">
+                        <%= address.city %>, <%= address.state %>
+                            <%= address.zipCode %>
+                      </p>
+                      <p class="mb-0">Phone: <%= address.phone %>
+                      </p>
+                      <!-- <div class="mt-2">
+                <button
+                  class="btn btn-sm btn-outline-primary me-2"
+                  onclick="editAddress('<%= address._id %>')"
+                >
+                  Edit
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  onclick="confirmDeleteAddress('<%= address._id %>')"
+                >
+                  Delete
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary ms-2"
+                  onclick="copyAddress('<%= address._id %>')"
+                >
+                  Copy
+                </button>
+                <% if (!address.isDefault) { %>
+                <button
+                  class="btn btn-sm btn-outline-info ms-2"
+                  onclick="setDefaultAddress('<%= address._id %>')"
+                >
+                  Set Default
+                </button>
+                <% } %>
+              </div> -->
+                </div>
+                <% }); %>
+                  <% } else { %>
+                    <div class="text-center py-5 text-muted">
+                      <i class="fas fa-map-marker-alt fa-3x mb-3"></i>
+                      <p class="lead">You haven't added any addresses yet.</p>
+                    </div>
+                    <% } %>
+                      <button class="btn btn-primary mt-3" onclick="openAddAddressModal()">
+                        <i class="fas fa-plus me-1"></i> Add New Address
+                      </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Alert Message Container -->
+<div class="alert-message-container">
+  <div id="customAlert" class="alert-message"></div>
+</div>
+
+<!-- Login Required Modal -->
+<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Please log in to view your profile and manage your account.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+        <a href="/user/login" class="btn btn-primary">Go to Login</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="orderDetailsContent">
+        <!-- Order details will be loaded here via JS -->
+        Loading order details...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Address Modal -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addressModalLabel">Add New Address</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="addressForm">
+        <div class="modal-body">
+          <input type="hidden" id="addressId" />
+          <div class="mb-3">
+            <label for="addressName" class="form-label">Address Name (e.g., Home, Office)</label>
+            <input type="text" class="form-control" id="addressName" required />
+          </div>
+          <div class="mb-3">
+            <label for="addressLine1" class="form-label">Address Line 1</label>
+            <input type="text" class="form-control" id="addressLine1" required />
+          </div>
+          <div class="mb-3">
+            <label for="addressLine2" class="form-label">Address Line 2 (Optional)</label>
+            <input type="text" class="form-control" id="addressLine2" />
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addressCity" class="form-label">City</label>
+              <input type="text" class="form-control" id="addressCity" required />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addressState" class="form-label">State/Province</label>
+              <input type="text" class="form-control" id="addressState" value="Punjab" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addressZipCode" class="form-label">Zip Code</label>
+              <input type="text" class="form-control" id="addressZipCode" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addressCountry" class="form-label">Country</label>
+              <input type="text" class="form-control" id="addressCountry" value="Pakistan" readonly />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="addressPhone" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="addressPhone" required />
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="isDefaultAddress" />
+            <label class="form-check-label" for="isDefaultAddress">
+              Set as Default Address
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" id="saveAddressBtn">
+            Save Address
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">
+          Confirm Deletion
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        Are you sure you want to delete this address?
+        <input type="hidden" id="addressToDeleteId" />
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" onclick="performDeleteAddress()">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Custom Alert Function (replaces window.alert)
+  function showAlert(message, type = 'success') {
+    const alertBox = document.getElementById('customAlert');
+    alertBox.textContent = message;
+
+    alertBox.classList.remove('bg-success', 'bg-danger', 'bg-info', 'bg-warning', 'text-dark');
+    if (type === 'success') {
+      alertBox.classList.add('bg-success');
+    } else if (type === 'error') {
+      alertBox.classList.add('bg-danger');
+    } else if (type === 'info') {
+      alertBox.classList.add('bg-info');
+    } else if (type === 'warning') {
+      alertBox.classList.add('bg-warning', 'text-dark');
+    }
+
+    alertBox.classList.add('show');
+
+    setTimeout(() => {
+      alertBox.classList.remove('show');
+    }, 3000); // Hide after 3 seconds
+  }
+
+  // --- Profile Form Logic ---
+  const profileForm = document.getElementById('profileForm');
+  const userNameInput = document.getElementById('userName');
+  const userEmailInput = document.getElementById('userEmail');
+  const userPhoneInput = document.getElementById('userPhone');
+  const editProfileBtn = document.getElementById('editProfileBtn');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+  let originalProfileData = {
+    name: userNameInput.value,
+    email: userEmailInput.value,
+    phone: userPhoneInput.value
+  };
+
+  function toggleEditMode(enable) {
+    userNameInput.disabled = !enable;
+    userPhoneInput.disabled = !enable; // Email usually not editable directly here
+
+    if (enable) {
+      editProfileBtn.classList.add('d-none');
+      saveProfileBtn.classList.remove('d-none');
+      cancelEditBtn.classList.remove('d-none');
+    } else {
+      editProfileBtn.classList.remove('d-none');
+      saveProfileBtn.classList.add('d-none');
+      cancelEditBtn.classList.add('d-none');
+    }
+  }
+
+  function editProfile() {
+    toggleEditMode(true);
+    originalProfileData = {
+      name: userNameInput.value,
+      email: userEmailInput.value,
+      phone: userPhoneInput.value
+    };
+  }
+
+  function cancelEdit() {
+    userNameInput.value = originalProfileData.name;
+    userPhoneInput.value = originalProfileData.phone;
+    toggleEditMode(false);
+    showAlert('Changes cancelled.', 'info');
+  }
+
+  profileForm.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const updatedData = {
+      name: userNameInput.value,
+      phone: userPhoneInput.value
+    };
+
+    try {
+      const response = await fetch('/api/profile/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showAlert(data.message, 'success');
+        originalProfileData = { ...updatedData, email: userEmailInput.value }; // Update original data
+        toggleEditMode(false);
+      } else {
+        showAlert(data.error || 'Failed to update profile.', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showAlert('An unexpected error occurred.', 'error');
+    }
+  });
+
+  // --- Order Details Modal Logic ---
+  async function viewOrderDetails(orderId) {
+    const orderDetailsContent = document.getElementById('orderDetailsContent');
+    orderDetailsContent.innerHTML = '<p class="text-center">Loading order details...</p>';
+    const orderDetailsModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+    orderDetailsModal.show();
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        const order = data.order;
+         let itemsHtml = order.items.map(item => {
+           const imgPath = (item.picture && item.picture.startsWith("http")) ? item.picture : (item.picture ? "/uploads/" + item.picture : "https://placehold.co/60x80/cccccc/333333?text=No+Img");
+           return `
+                  <div class="d-flex align-items-center mb-2 border-bottom pb-2">
+                      <img src="${imgPath}" alt="${item.title}" style="width: 60px; height: 80px; object-fit: cover; border-radius: 0.3rem;" class="me-3">
+                      <div>
+                          <h6 class="mb-0">${item.title}</h6>
+                          <p class="mb-0 text-muted">Qty: ${item.quantity} | Price: Rs. ${item.price.toFixed(2)}</p>
+                      </div>
+                  </div>
+              `;
+         }).join('');
+
+        orderDetailsContent.innerHTML = `
+                  <p><strong>Order ID:</strong> #${order._id.toString().slice(-6)}</p>
+                  <p><strong>Order Date:</strong> ${new Date(order.orderDate).toLocaleDateString()} at ${new Date(order.orderDate).toLocaleTimeString()}</p>
+                  <p><strong>Status:</strong> <span class="badge ${order.status === 'Delivered' ? 'bg-success' : (order.status === 'Processing' ? 'bg-warning text-dark' : 'bg-danger')}">${order.status}</span></p>
+                  <hr>
+                  <h6>Items:</h6>
+                  ${itemsHtml}
+                  <hr>
+                  <p><strong>Subtotal:</strong> Rs. ${(order.total - order.shippingCharge).toFixed(2)}</p>
+                  <p><strong>Shipping:</strong> Rs. ${order.shippingCharge.toFixed(2)}</p>
+                  <h5><strong>Total:</strong> Rs. ${order.total.toFixed(2)}</h5>
+                  <hr>
+                  <h6>Shipping Address:</h6>
+                  <p>${order.shippingAddress.name || ''}</p>
+                  <p>${order.shippingAddress.address || ''}, ${order.shippingAddress.city || ''}</p>
+                  <p>${order.shippingAddress.state || ''} ${order.shippingAddress.zipCode || ''}, ${order.shippingAddress.country || ''}</p>
+                  <p>Phone: ${order.shippingAddress.phone || ''}</p>
+              `;
+      } else {
+        orderDetailsContent.innerHTML = `<p class="text-danger text-center">${data.error || 'Failed to load order details.'}</p>`;
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      orderDetailsContent.innerHTML = '<p class="text-danger text-center">An error occurred while loading order details.</p>';
+    }
+  }
+
+  // --- Address Management Logic ---
+  const addressModalElement = document.getElementById('addressModal');
+  const addressModalLabel = document.getElementById('addressModalLabel');
+  const addressForm = document.getElementById('addressForm');
+  const addressIdInput = document.getElementById('addressId');
+  const addressNameInput = document.getElementById('addressName');
+  const addressLine1Input = document.getElementById('addressLine1');
+  const addressLine2Input = document.getElementById('addressLine2');
+  const addressCityInput = document.getElementById('addressCity');
+  const addressStateInput = document.getElementById('addressState');
+  const addressZipCodeInput = document.getElementById('addressZipCode');
+  const addressCountryInput = document.getElementById('addressCountry');
+  const addressPhoneInput = document.getElementById('addressPhone');
+  const isDefaultAddressCheckbox = document.getElementById('isDefaultAddress');
+
+  // Safely initialize currentAddresses using a null check for 'user'
+  let currentAddresses = <% if (user && user.addresses) { %><%= JSON.stringify(user.addresses) %><% } else { %> [] <% } %>;
+
+
+  function openAddAddressModal() {
+    addressModalLabel.textContent = 'Add New Address';
+    addressIdInput.value = ''; // Clear for new address
+    addressForm.reset(); // Clear form fields
+    isDefaultAddressCheckbox.checked = false; // Default to not default
+    new bootstrap.Modal(addressModalElement).show();
+  }
+
+  function editAddress(addressId) {
+    const address = currentAddresses.find(addr => addr._id.toString() === addressId);
+    if (address) {
+      addressModalLabel.textContent = 'Edit Address';
+      addressIdInput.value = address._id;
+      addressNameInput.value = address.name;
+      addressLine1Input.value = address.addressLine1;
+      addressLine2Input.value = address.addressLine2 || '';
+      addressCityInput.value = address.city;
+      addressStateInput.value = address.state || 'Punjab'; // Populate default if null
+      addressZipCodeInput.value = address.zipCode || '';
+      addressCountryInput.value = address.country || 'Pakistan';
+      addressPhoneInput.value = address.phone;
+      isDefaultAddressCheckbox.checked = address.isDefault;
+      new bootstrap.Modal(addressModalElement).show();
+    } else {
+      showAlert('Address not found.', 'error');
+    }
+  }
+
+  addressForm.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const addressData = {
+      name: addressNameInput.value,
+      addressLine1: addressLine1Input.value,
+      addressLine2: addressLine2Input.value,
+      city: addressCityInput.value,
+      state: addressStateInput.value,
+      zipCode: addressZipCodeInput.value,
+      country: addressCountryInput.value,
+      phone: addressPhoneInput.value,
+      isDefault: isDefaultAddressCheckbox.checked
+    };
+
+    const addressId = addressIdInput.value;
+    const method = addressId ? 'PUT' : 'POST';
+    const url = addressId ? `/api/addresses/${addressId}` : '/api/addresses/add';
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(addressData),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        showAlert(data.message, 'success');
+        new bootstrap.Modal(addressModalElement).hide();
+        // Reload page or dynamically update address list
+        location.reload(); // Simple reload for now, can be optimized
+      } else {
+        showAlert(data.error || 'Failed to save address.', 'error');
+      }
+    } catch (error) {
+      console.error('Error saving address:', error);
+      showAlert('An unexpected error occurred.', 'error');
+    }
+  });
+
+  // New function to open delete confirmation modal
+  function confirmDeleteAddress(addressId) {
+    document.getElementById('addressToDeleteId').value = addressId;
+    const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    deleteConfirmModal.show();
+  }
+
+  // Function to perform the actual delete after confirmation
+  async function performDeleteAddress() {
+    const addressId = document.getElementById('addressToDeleteId').value;
+    const deleteConfirmModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+    deleteConfirmModal.hide(); // Hide the modal immediately
+
+    try {
+      const response = await fetch(`/api/addresses/${addressId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        showAlert(data.message, 'success');
+        location.reload();
+      } else {
+        showAlert(data.error || 'Failed to delete address.', 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      showAlert('An unexpected error occurred.', 'error');
+    }
+  }
+
+
+  async function setDefaultAddress(addressId) {
+    try {
+      const response = await fetch(`/api/addresses/${addressId}/set-default`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        showAlert(data.message, 'success');
+        location.reload();
+      } else {
+        showAlert(data.error || 'Failed to set default address.', 'error');
+      }
+    } catch (error) {
+      console.error('Error setting default address:', error);
+      showAlert('An unexpected error occurred.', 'error');
+    }
+  }
+
+  function copyAddress(addressId) {
+    const address = currentAddresses.find(addr => addr._id.toString() === addressId);
+    if (address) {
+      const fullAddress = `${address.addressLine1}, ${address.addressLine2 ? address.addressLine2 + ', ' : ''}${address.city}, ${address.state || ''}, ${address.zipCode || ''}, ${address.country || ''}`;
+      const tempInput = document.createElement('textarea');
+      tempInput.value = fullAddress;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      showAlert('Address copied to clipboard!', 'success');
+    } else {
+      showAlert('Address details not found for copying.', 'error');
+    }
+  }
+
+  function logoutUser() {
+    showAlert('Logging out...', 'info');
+    fetch('/logout', { method: 'POST' })
+      .then(response => {
+        if (response.ok) {
+          window.location.href = '/user/login'; // Redirect to login page
+        } else {
+          showAlert('Failed to logout. Please try again.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Logout error:', error);
+        showAlert('An error occurred during logout.', 'error');
+      });
+  }
+
+  // Initialize edit mode on page load and potentially show login modal
+  document.addEventListener('DOMContentLoaded', () => {
+    toggleEditMode(false); // Start personal details in view mode
+
+      // Check if showLoginModal flag is true (passed from backend)
+      <% if (locals.showLoginModal) { %>
+          const loginModal = new bootstrap.Modal(document.getElementById('loginRequiredModal'));
+      loginModal.show();
+      <% } %>
+  });
+</script>

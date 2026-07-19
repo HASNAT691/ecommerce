@@ -1,0 +1,215 @@
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .admin-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .05);
+        background-color: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .order-details-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 0.5rem;
+        padding:
+            1.5rem;
+        margin-bottom: 1.5rem;
+        background-color: #fcfcfc;
+    }
+
+    .product-item-img {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 0.25rem;
+    }
+
+    .order-status-badge {
+        padding: .4em .6em;
+        border-radius:
+            .375rem;
+        font-size: .8em;
+        font-weight: 600;
+    }
+
+    .status-Pending {
+        background-color: #ffc107;
+        color: #343a40;
+    }
+
+    /* Warning yellow */
+    .status-Confirmed {
+        background-color: #0d6efd;
+        color: #fff;
+    }
+
+    /* Primary blue */
+    .status-Shipped {
+        background-color: #17a2b8;
+        color: #fff;
+    }
+
+    /* Info cyan */
+    .status-Delivered {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    /* Success green */
+    .status-Cancelled {
+        background-color: #dc3545;
+        color: #fff;
+    }
+</style>
+
+<body>
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/admin/customers" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left me-2"></i>Back
+                to Customers</a>
+            <h1 class="mb-0 text-center flex-grow-1">Order History for <%= customer.name || customer.email %>
+            </h1>
+            <div></div> <!-- Placeholder for alignment -->
+        </div>
+
+        <div class="admin-card p-4">
+            <div class="mb-4">
+                <h5>Customer Details:</h5>
+                <p><strong>Name:</strong>
+                    <%= customer.name || 'N/A' %>
+                </p>
+                <p><strong>Email:</strong>
+                    <%= customer.email %>
+                </p>
+                <p><strong>Phone:</strong>
+                    <%= customer.phone || 'N/A' %>
+                </p>
+                <h6>Addresses:</h6>
+                <% if (customer.addresses && customer.addresses.length> 0) { %>
+                    <% customer.addresses.forEach(address=> { %>
+                        <div class="card p-3 mb-2 bg-light">
+                            <p class="mb-1"><strong>
+                                    <%= address.name %>
+                                </strong>
+                                <%= address.isDefault ? '(Default)' : '' %>
+                            </p>
+                            <p class="mb-0">
+                                <%= address.addressLine1 %>
+                                    <% if (address.addressLine2) { %>, <%= address.addressLine2 %>
+                                            <% } %>
+                            </p>
+                            <p class="mb-0">
+                                <%= address.city %>, <%= address.state %>
+                                        <%= address.zipCode %>
+                            </p>
+                            <p class="mb-0">
+                                <%= address.country %>
+                            </p>
+                            <p class="mb-0">Phone: <%= address.phone %>
+                            </p>
+                        </div>
+                        <% }); %>
+                            <% } else { %>
+                                <p>No addresses on file.</p>
+                                <% } %>
+            </div>
+
+            <h4 class="mb-3">Orders:</h4>
+
+            <% if (orders && orders.length> 0) { %>
+                <% orders.forEach(order=> { %>
+                    <div class="order-details-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5>Order #<%= order.readableOrderId %>
+                            </h5>
+                            <span class="order-status-badge status-<%= order.status %>">
+                                <%= order.status %>
+                            </span>
+                        </div>
+                        <p><strong>Date:</strong>
+                            <%= new Date(order.orderDate).toLocaleDateString('en-PK', { year: 'numeric' , month: 'long'
+                                , day: 'numeric' , hour: '2-digit' , minute: '2-digit' }) %>
+                        </p>
+                        <p><strong>Total:</strong> PKR <%= order.total.toFixed(2) %> (Subtotal: PKR <%=
+                                    order.subtotal.toFixed(2) %> + Shipping: PKR <%= order.shippingCharge.toFixed(2) %>)
+                        </p>
+                        <h6>Shipping Address:</h6>
+                        <p class="mb-2">
+                            <%= order.shippingAddress.name %><br>
+                                <%= order.shippingAddress.addressLine1 %>
+                                    <% if (order.shippingAddress.addressLine2) { %>, <%=
+                                            order.shippingAddress.addressLine2 %>
+                                            <% } %><br>
+                                                <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %>
+                                                        <%= order.shippingAddress.zipCode %>, <%=
+                                                                order.shippingAddress.country %><br>
+                                                                Phone: <%= order.shippingAddress.phone %>
+                        </p>
+                        <h6>Items:</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            <% order.items.forEach(item=> { %>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="/<%= item.picture %>"
+                                            onerror="this.onerror=null;this.src='https://placehold.co/40x40/f0f0f0/333333?text=No+Img';"
+                                            alt="<%= item.title %>" class="product-item-img me-2">
+                                        <%= item.title %> (x<%= item.quantity %>)
+                                    </div>
+                                    <span>PKR <%= (item.price * item.quantity).toFixed(2) %></span>
+                                </li>
+                                <% }); %>
+                        </ul>
+                        <p><strong>Payment Method:</strong>
+                            <%= order.paymentMethod %>
+                                <% if (order.paymentMethod==='JazzCash' && order.paymentScreenshot) { %>
+                                    (<a href="#" class="view-screenshot-link"
+                                        data-screenshot-path="<%= order.paymentScreenshot %>">View Screenshot</a>)
+                                    <% } %>
+                        </p>
+                    </div>
+                    <% }); %>
+                        <% } else { %>
+                            <p>This customer has not placed any orders yet.</p>
+                            <% } %>
+
+        </div>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div class="modal fade" id="screenshotModal" tabindex="-1" aria-labelledby="screenshotModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="screenshotModalLabel">Payment Screenshot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalScreenshotImage" src="" alt="Payment Screenshot" class="img-fluid rounded">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Handle view screenshot link click
+            document.querySelectorAll('.view-screenshot-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const screenshotPath = this.dataset.screenshotPath;
+                    const modalImage = document.getElementById('modalScreenshotImage');
+                    modalImage.src = `/${screenshotPath}`; // Assuming /uploads is the root for static files
+                    const screenshotModal = new bootstrap.Modal(document.getElementById('screenshotModal'));
+                    screenshotModal.show();
+                });
+            });
+        });
+    </script>
+</body>

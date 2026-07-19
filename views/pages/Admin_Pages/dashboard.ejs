@@ -1,0 +1,143 @@
+
+    <link rel="stylesheet" href="/css/adminDash.css">
+
+    
+    <div class="container my-5">
+        <h1 class="mb-4 text-center">Admin Dashboard</h1>
+
+        <div class="row">
+            <!-- Sales Overview -->
+            <div class="col-lg-4 col-md-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <span><i class="fas fa-chart-line"></i> Sales Overview</span>
+                    </div>
+                    <div class="dashboard-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">PKR <%= stats.totalRevenue.toLocaleString() %></div>
+                            <div class="stat-label">Total Revenue</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value"><%= products.length %></div>
+                            <div class="stat-label">Products</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Overview -->
+            <div class="col-lg-4 col-md-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <span><i class="fas fa-shopping-cart"></i> Orders</span>
+                    </div>
+                    <div class="dashboard-stats">
+                        <div class="stat-item">
+                            <div class="stat-value"><%= stats.totalOrders %></div>
+                            <div class="stat-label">Total Orders</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value"><%= stats.completedPercentage %>%</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Stats -->
+            <div class="col-lg-4 col-md-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <span><i class="fas fa-users"></i> Customers</span>
+                    </div>
+                    <div class="dashboard-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">1,250</div>
+                            <div class="stat-label"> Customers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">+8%</div>
+                            <div class="stat-label">New one</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders Table -->
+        <div class="dashboard-card mt-4">
+            <div class="dashboard-card-header">
+                <span><i class="fas fa-table"></i> Recent Orders</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table recent-orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Subtotal</th>
+                            <th>Shipping</th>
+                            <th>Total Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders && orders.length > 0) { %>
+                            <% orders.forEach(order => { %>
+                                <tr>
+                                    <td>#<%= order._id ? order._id.toString().slice(-6) : 'N/A' %></td>
+                                    <td><%= order.shippingAddress ? order.shippingAddress.name : 'Customer' %></td>
+                                    <td>PKR <%= order.subtotal.toLocaleString() %></td>
+                                    <td>PKR <%= (order.shippingCharge || 190).toLocaleString() %></td>
+                                    <td>PKR <%= order.total.toLocaleString() %></td>
+                                    <td><%= order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A' %></td>
+                                    <td>
+                                        <span class="badge bg-<%= order.status === 'Completed' ? 'success' : 
+                                                        order.status === 'Pending' ? 'warning' : 'danger' %>">
+                                            <%= order.status || 'Pending' %>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="7" class="text-center">No orders found</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+                
+                <!-- Pagination Controls -->
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Orders pagination">
+                        <ul class="pagination">
+                            <% if (pagination.hasPrev) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="/admin/dashboard?page=<%= pagination.page - 1 %>" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            <% } %>
+                            
+                            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                                <li class="page-item <%= pagination.page === i ? 'active' : '' %>">
+                                    <a class="page-link" href="/admin/dashboard?page=<%= i %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                            
+                            <% if (pagination.hasNext) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="/admin/dashboard?page=<%= pagination.page + 1 %>" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    

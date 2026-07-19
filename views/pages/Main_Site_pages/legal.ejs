@@ -1,0 +1,89 @@
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+      <div class="bg-white p-5 rounded shadow-sm border">
+        
+        <!-- Privacy Policy -->
+        <% if (legalType === 'privacy') { %>
+          <span class="text-uppercase tracking-widest text-muted small fw-bold">Store Policies</span>
+          <h1 class="display-6 fw-bold mt-2 mb-4" style="font-family: 'Outfit', sans-serif;">Privacy Policy</h1>
+          <div class="my-3" style="width: 40px; height: 3px; background-color: #111;"></div>
+          
+          <p class="text-secondary mb-4">Last Updated: July 2026</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">1. Information We Collect</h5>
+          <p class="text-secondary mb-4">We collect information from you when you register on our site, place an order, or update your saved addresses. The data collected includes your name, email address, physical address, and phone number.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">2. How We Use Your Information</h5>
+          <p class="text-secondary mb-4">We use your details to fulfill orders, process payments (via EasyPaisa screenshot verification), provide shipping updates, and handle customer service questions.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">3. Data Security</h5>
+          <p class="text-secondary mb-4">Your connection to our server is protected with Secure Socket Layer (SSL) encryption. We do not sell, trade, or otherwise transfer your personally identifiable information to outside parties.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">4. Cookies</h5>
+          <p class="text-secondary mb-4">We use basic session cookies to manage your login state, cart items, and wishlist details across pages. By using our website, you agree to this storage.</p>
+
+        <!-- Terms & Conditions -->
+        <% } else if (legalType === 'terms') { %>
+          <span class="text-uppercase tracking-widest text-muted small fw-bold">Terms of Service</span>
+          <h1 class="display-6 fw-bold mt-2 mb-4" style="font-family: 'Outfit', sans-serif;">Terms & Conditions</h1>
+          <div class="my-3" style="width: 40px; height: 3px; background-color: #111;"></div>
+          
+          <p class="text-secondary mb-4">Last Updated: July 2026</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">1. Account Creation</h5>
+          <p class="text-secondary mb-4">When you create an account, you must provide accurate, complete, and current information. You are responsible for maintaining the confidentiality of your account credentials.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">2. Order Fulfillments & Processing</h5>
+          <p class="text-secondary mb-4">We reserve the right to cancel any order if there is insufficient stock or invalid delivery details. If you choose EasyPaisa manual payment, you must upload a legible payment screenshot showing the Transaction ID to confirm your purchase.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">3. Product Details</h5>
+          <p class="text-secondary mb-4">We attempt to display our apparel colors and embroidery designs as accurately as possible. However, actual color shades may vary slightly due to your monitor's display properties.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">4. Limitations of Liability</h5>
+          <p class="text-secondary mb-4">AL-REHAN GARMENTS shall not be liable for any direct, indirect, incidental, or consequential damages resulting from the use or inability to use our website services.</p>
+
+        <!-- Shipping Policy -->
+        <% } else if (legalType === 'shipping') { %>
+          <span class="text-uppercase tracking-widest text-muted small fw-bold">Delivery Guidelines</span>
+          <h1 class="display-6 fw-bold mt-2 mb-4" style="font-family: 'Outfit', sans-serif;">Shipping Information</h1>
+          <div class="my-3" style="width: 40px; height: 3px; background-color: #111;"></div>
+          
+          <h5 class="fw-bold mt-4 mb-3">1. Shipping Charges</h5>
+          <p class="text-secondary mb-4">We charge a flat fee of **PKR 190** for standard delivery on all orders within Pakistan. Express delivery is charged at **PKR 500**.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">2. Delivery Timeline</h5>
+          <p class="text-secondary mb-4">Standard delivery generally takes **3 to 5 business days** to arrive at your shipping address after order confirmation. Express orders take **1 to 2 business days**.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">3. Cash on Delivery (COD)</h5>
+          <p class="text-secondary mb-4">For COD orders, you will pay the rider in cash when the package is delivered. Please make sure the exact total amount is available at the time of delivery.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">4. Order Tracking</h5>
+          <p class="text-secondary mb-4">You will receive a unique Tracking ID upon order confirmation. You can input this tracking ID on our [Track Order](/track-order) page to check the progress of your shipment.</p>
+
+        <!-- Return & Exchange -->
+        <% } else if (legalType === 'returns') { %>
+          <span class="text-uppercase tracking-widest text-muted small fw-bold">Returns & Refunds</span>
+          <h1 class="display-6 fw-bold mt-2 mb-4" style="font-family: 'Outfit', sans-serif;">Return & Exchange Policy</h1>
+          <div class="my-3" style="width: 40px; height: 3px; background-color: #111;"></div>
+          
+          <h5 class="fw-bold mt-4 mb-3">1. 7-Day Returns</h5>
+          <p class="text-secondary mb-4">We offer a **7-day return and exchange window** from the date your package was delivered. Items must be unused, unwashed, and in their original packaging with tags intact.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">2. Unstitched vs Stitched Items</h5>
+          <p class="text-secondary mb-4">Unstitched fabric cannot be returned or exchanged once it has been cut, sewn, or altered. Stitched garments must not show signs of wear or damage to qualify for a return.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">3. How to Open a Return Request</h5>
+          <p class="text-secondary mb-4">To initiate a return or exchange, please send a message to our WhatsApp support team at **+92 345 7139939** with your Order ID, customer details, and pictures of the product.</p>
+          
+          <h5 class="fw-bold mt-4 mb-3">4. Refund Delivery</h5>
+          <p class="text-secondary mb-4">Once your return is inspected and approved, we will process your refund to your provided EasyPaisa account within **3 to 5 business days**.</p>
+        <% } %>
+
+        <div class="mt-5 pt-4 border-top text-center">
+          <a href="/" class="btn btn-outline-dark px-4"><i class="fas fa-home me-2"></i>Back to Home</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

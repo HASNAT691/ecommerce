@@ -1,0 +1,149 @@
+
+
+  <style>
+    body{
+      background:linear-gradient(135deg,#f6f8f9 0%,#e5ebee 100%);
+      font-family:'Inter',sans-serif;
+    }
+
+    /* Underline input */
+    .form-control-underline{
+      border:none;border-bottom:2px solid #ccc;border-radius:0;box-shadow:none;
+    }
+    .form-control-underline:focus{
+      border-bottom-color:#4A90E2;box-shadow:none;
+    }
+
+    /* Gradient button */
+    .btn-gradient{
+      background:linear-gradient(to right,#4A90E2,#6BDFFF);
+      color:#fff;border:none;
+    }
+    .btn-gradient:hover{
+      transform:translateY(-2px);
+      box-shadow:0 6px 12px rgba(74,144,226,.2);
+    }
+    .btn-gradient:active{
+      transform:translateY(0);
+      box-shadow:0 4px 6px rgba(74,144,226,.15);
+    }
+
+    .subcategory-list .remove-subcategory{        /* hide remove on first input */
+      display:none;
+    }
+  </style>
+
+
+  <div class="container-fluid px-4 py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-12 col-md-10">
+
+        <h2 class="mb-4 fw-semibold text-start">
+          <i class="fa fa-edit me-2"></i>Edit Category
+        </h2>
+
+        <form id="editCategoryForm"
+              class="needs-validation"
+              method="POST"
+              action="/admin/categories/edit/<%= category._id %>"
+              novalidate>
+
+          <!-- Category name -->
+          <div class="mb-3">
+            <label for="categoryName" class="form-label fw-bold">
+              Category Name <span class="text-danger">*</span>
+            </label>
+            <input  id="categoryName"
+                    name="categoryName"
+                    class="form-control form-control-underline"
+                    type="text"
+                    value="<%= category.categoryName %>"
+                    minlength="2" maxlength="50"
+                    required>
+            <div class="invalid-feedback">Category name is required.</div>
+          </div>
+
+          <!-- Subcategories -->
+          <div id="subcategoryContainer">
+            <label class="form-label fw-bold">Subcategories</label>
+
+            <% if (category.subcategories && category.subcategories.length){ %>
+              <% category.subcategories.forEach(function(sub, idx){ %>
+                <div class="input-group mb-2 subcategory-list">
+                  <input class="form-control form-control-underline"
+                         type="text"
+                         name="subcategories[]"
+                         value="<%= sub %>"
+                         placeholder="Subcategory">
+                  <button class="btn btn-outline-danger remove-subcategory <%= idx===0 ? 'd-none' : '' %>"
+                          type="button">
+                    Remove
+                  </button>
+                </div>
+              <% }) %>
+            <% } else { %>
+                <!-- fallback if none exist -->
+                <div class="input-group mb-2 subcategory-list">
+                  <input class="form-control form-control-underline"
+                         type="text"
+                         name="subcategories[]"
+                         placeholder="Subcategory">
+                </div>
+            <% } %>
+          </div>
+
+          <button id="addSubcategory"
+                  type="button"
+                  class="btn btn-sm btn-outline-primary mb-3">
+            + Add Subcategory
+          </button>
+
+          <!-- Submit -->
+          <button type="submit"
+                  class="btn btn-gradient w-100 py-2 rounded-3">
+            <i class="fa fa-save me-1"></i>Update Category
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // ── Bootstrap validation ──────────────────────────────────────
+    (function () {
+      'use strict';
+      const form = document.getElementById('editCategoryForm');
+      form.addEventListener('submit', function (e) {
+        if (!form.checkValidity()) {
+          e.preventDefault(); e.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      });
+    })();
+
+    // ── Add / remove dynamic subcategory fields ───────────────────
+    const container = document.getElementById('subcategoryContainer');
+    document.getElementById('addSubcategory').addEventListener('click', () => {
+      const group = document.createElement('div');
+      group.className = 'input-group mb-2';
+
+      group.innerHTML = `
+        <input class="form-control form-control-underline"
+               type="text"
+               name="subcategories[]"
+               placeholder="Subcategory">
+        <button class="btn btn-outline-danger remove-subcategory" type="button">
+          Remove
+        </button>`;
+      container.appendChild(group);
+    });
+
+    container.addEventListener('click', e => {
+      if (e.target.classList.contains('remove-subcategory')) {
+        e.target.closest('.input-group').remove();
+      }
+    });
+  </script>

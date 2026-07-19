@@ -1,0 +1,431 @@
+<style>
+  .product-image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3/4;
+    /* Maintains aspect ratio for product images */
+    overflow: hidden;
+  }
+
+  .product-image-container img {
+    position: absolute;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.3s ease;
+  }
+
+  .product-image-container img.second-image {
+    opacity: 0;
+  }
+
+  .product-image-container:hover img.first-image {
+    opacity: 0;
+  }
+
+  .product-image-container:hover img.second-image {
+    opacity: 1;
+  }
+
+  .dropdown-toggle::after {
+    display: inline-block;
+    margin-left: 0.255em;
+  }
+
+  .dropdown .btn {
+    width: 150px;
+    height: 40px;
+    text-align: center;
+  }
+
+  .add-to-wishlist {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    opacity: 0.8;
+  }
+
+  .add-to-wishlist:hover {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  .add-to-wishlist.active {
+    color: red;
+  }
+
+  .position-relative:hover .add-to-wishlist {
+    opacity: 1;
+  }
+
+  .sidebar {
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    padding: 20px;
+  }
+
+  .sidebar-heading {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+
+  .category-list {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .category-item {
+    margin-bottom: 10px;
+  }
+
+  .category-checkbox {
+    margin-right: 8px;
+  }
+
+  .no-products {
+    text-align: center;
+    padding: 50px 0;
+  }
+
+  .no-products i {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 20px;
+  }
+
+  .mobile-category-select {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .sidebar {
+      display: none;
+    }
+
+    .mobile-category-select {
+      display: block;
+      margin-bottom: 20px;
+    }
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- Mobile Category Select -->
+    <div class="col-12 mobile-category-select">
+      <select class="form-select" onchange="window.location.href=this.value">
+        <option value="/secondpage">All Categories</option>
+        <optgroup label="Main Categories">
+          <option value="/secondpage?category=Kids" <%=locals.category==='Kids' ? 'selected' : '' %>>Kids</option>
+          <option value="/secondpage?category=Stitched" <%=locals.category==='Stitched' ? 'selected' : '' %>>Stitched
+          </option>
+          <option value="/secondpage?category=Unstitched" <%=locals.category==='Unstitched' ? 'selected' : '' %>
+            >Un-Stitched</option>
+          <option value="/secondpage?category=Ready-to-Wear" <%=locals.category==='Ready-to-Wear' ? 'selected' : '' %>
+            >Ready-to-Wear</option>
+        </optgroup>
+        <optgroup label="Collections">
+          <option value="/secondpage?category=Summer Collection" <%=locals.category==='Summer Collection' ? 'selected'
+            : '' %>>Summer Collection</option>
+          <option value="/secondpage?category=Winter Collection" <%=locals.category==='Winter Collection' ? 'selected'
+            : '' %>>Winter Collection</option>
+          <option value="/secondpage?category=Formal Fabrics" <%=locals.category==='Formal Fabrics' ? 'selected' : '' %>
+            >Formal Fabrics</option>
+          <option value="/secondpage?category=Occasion Wear" <%=locals.category==='Occasion Wear' ? 'selected' : '' %>
+            >Occasion Wear</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 d-md-block sidebar">
+      <div class="position-sticky pt-3">
+        <h6 class="sidebar-heading">Categories</h6>
+        <ul class="category-list">
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="" <%=!locals.category ? 'checked' : '' %>>
+              All Products
+            </label>
+          </li>
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="Kids" <%=locals.category==='Kids'
+                ? 'checked' : '' %>>
+              Kids
+            </label>
+          </li>
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="Stitched" <%=locals.category==='Stitched'
+                ? 'checked' : '' %>>
+              Stitched
+            </label>
+          </li>
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="Unstitched"
+                <%=locals.category==='Unstitched' ? 'checked' : '' %>>
+              Un-Stitched
+            </label>
+          </li>
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="Ready-to-Wear"
+                <%=locals.category==='Ready-to-Wear' ? 'checked' : '' %>>
+              Ready-to-Wear
+            </label>
+          </li>
+        </ul>
+
+        <h6 class="sidebar-heading mt-4">Collections</h6>
+        <ul class="category-list">
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="Summer Collection"
+                <%=locals.category==='Summer Collection' ? 'checked' : '' %>>
+              Summer Collection
+            </label>
+          </li>
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="Winter Collection"
+                <%=locals.category==='Winter Collection' ? 'checked' : '' %>>
+              Winter Collection
+            </label>
+          </li>
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="Formal Fabrics"
+                <%=locals.category==='Formal Fabrics' ? 'checked' : '' %>>
+              Formal Fabrics
+            </label>
+          </li>
+          <li class="category-item">
+            <label class="d-flex align-items-center">
+              <input type="checkbox" class="category-checkbox" data-category="Occasion Wear"
+                <%=locals.category==='Occasion Wear' ? 'checked' : '' %>>
+              Occasion Wear
+            </label>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div
+        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+          <% if (locals.category) { %>
+            <%= category %>
+              <% if (locals.subcategory) { %>
+                - <%= subcategory %>
+                  <% } %>
+                    <% } else { %>
+                      All Products
+                      <% } %>
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group me-2">
+            <select class="form-select" id="sortSelect" onchange="updateSort(this.value)">
+              <option value="newest" <%=locals.sort==='newest' ? 'selected' : '' %>>Newest</option>
+              <option value="price_asc" <%=locals.sort==='price_asc' ? 'selected' : '' %>>Price: Low to High</option>
+              <option value="price_desc" <%=locals.sort==='price_desc' ? 'selected' : '' %>>Price: High to Low
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        <% if (products.length===0) { %>
+          <div class="col-12 ">
+            <div class="no-products">
+              <i class="bi bi-search"></i>
+              <h3>No Products Found</h3>
+              <p>Try adjusting your filters or browse our other categories</p>
+            </div>
+          </div>
+          <% } else { %>
+            <% products.forEach(product=> { %>
+              <div class="col">
+                <div class="card h-100">
+                  <div class="product-image-container">
+                    <% if (product.images && product.images.length> 0) { %>
+                      <img src="<%= product.images[0].startsWith('http') ? product.images[0] : '/uploads/' + product.images[0] %>" class="card-img-top first-image"
+                        alt="<%= product.title %>"
+                        onerror="this.onerror=null;this.src='https://placehold.co/400x500/f0f0f0/333333?text=No+Image';">
+                      <% if (product.images.length> 1) { %>
+                        <img src="<%= product.images[1].startsWith('http') ? product.images[1] : '/uploads/' + product.images[1] %>" class="card-img-top second-image"
+                          alt="<%= product.title %> (Hover)"
+                          onerror="this.onerror=null;this.src='https://placehold.co/400x500/f0f0f0/333333?text=No+Image';">
+                        <% } %>
+                          <% } else { %>
+                            <img src="https://placehold.co/400x500/f0f0f0/333333?text=No+Image" class="card-img-top"
+                              alt="No Image Available">
+                            <% } %>
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">
+                      <%= product.title %>
+                    </h5>
+                    <p class="card-text">Rs. <%= product.price %>
+                    </p>
+                    <div class="d-flex justify-content-between">
+                      <a href="/product/<%= product._id %>" class="btn btn-primary">View Details</a>
+                      <button class="btn btn-outline-primary" onclick="addToCart('<%= product._id %>')">
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <% }); %>
+                <% } %>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  // Custom Alert Function (replaces window.alert) - Add this if not in your layout.ejs
+  function showAlert(message, type = "success") {
+    let alertContainer = document.querySelector('.alert-message-container');
+    if (!alertContainer) {
+      alertContainer = document.createElement('div');
+      alertContainer.className = 'alert-message-container';
+      alertContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 1050;';
+      document.body.appendChild(alertContainer);
+    }
+
+    let alertBox = document.getElementById('customAlert');
+    if (!alertBox) {
+      alertBox = document.createElement('div');
+      alertBox.id = 'customAlert';
+      alertBox.className = 'alert-message';
+      alertBox.style.cssText = 'background-color: #28a745; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); display: none; opacity: 0; transition: opacity 0.5s ease-in-out;';
+      alertContainer.appendChild(alertBox);
+    }
+
+    alertBox.textContent = message;
+
+    if (type === 'success') { alertBox.style.backgroundColor = '#28a745'; alertBox.style.color = 'white'; }
+    else if (type === 'error') { alertBox.style.backgroundColor = '#dc3545'; alertBox.style.color = 'white'; }
+    else if (type === 'info') { alertBox.style.backgroundColor = '#17a2b8'; alertBox.style.color = 'white'; }
+    else if (type === 'warning') { alertBox.style.backgroundColor = '#ffc107'; alertBox.style.color = '#343a40'; }
+
+    alertBox.style.display = 'block';
+    alertBox.style.opacity = 1;
+
+    setTimeout(() => {
+      alertBox.style.opacity = 0;
+      setTimeout(() => { alertBox.style.display = 'none'; }, 500); // Hide after transition
+    }, 3000);
+  }
+
+  function updateSort(value) {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('sort', value);
+    // Preserve existing category and subcategory filters if they exist
+    const currentCategory = document.querySelector('.category-checkbox:checked')?.dataset.category;
+    if (currentCategory && currentCategory !== '') {
+      urlParams.set('category', currentCategory);
+    } else {
+      urlParams.delete('category');
+    }
+    // Subcategory is not directly handled by checkboxes in this code snippet,
+    // so it would need similar logic if it were an active filter.
+
+    window.location.search = urlParams.toString();
+  }
+
+  // Refactored filterProducts to use full page reload with query parameters
+  function filterProducts(category) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (category) {
+      urlParams.set('category', category);
+    } else {
+      urlParams.delete('category'); // Remove category filter
+    }
+    // Preserve sort order when changing category
+    const currentSort = document.getElementById('sortSelect')?.value;
+    if (currentSort) {
+      urlParams.set('sort', currentSort);
+    }
+
+    window.location.search = urlParams.toString();
+  }
+
+  async function addToCart(productId) {
+    try {
+      const response = await fetch('/add-to-cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showAlert('Product added to cart!', 'success');
+        // Optionally update cart count in navbar here if you have an element for it
+        document.getElementById('cart-count').textContent = data.cartCount;
+      } else {
+        showAlert(data.error || 'Error adding product to cart', 'error');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      showAlert('An unexpected error occurred this line gives error.', 'error');
+    }
+  }
+
+  // Update checkbox event listeners
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.category-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', function () {
+        // Uncheck all other checkboxes in the same group (optional, if you want single select)
+        document.querySelectorAll('.category-checkbox').forEach(cb => {
+          if (cb !== this) cb.checked = false;
+        });
+
+        // If this checkbox is checked, filter products
+        if (this.checked) {
+          const category = this.getAttribute('data-category');
+          filterProducts(category);
+        } else {
+          // If unchecked (and no other is checked), show all products
+          // This ensures that if a checkbox is unchecked, it acts as a "show all" or filters appropriately
+          const anyChecked = Array.from(document.querySelectorAll('.category-checkbox')).some(cb => cb.checked);
+          if (!anyChecked) {
+            filterProducts(''); // Show all if no category is selected
+          }
+        }
+      });
+    });
+
+    // Initial check for category selection based on URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentCategory = urlParams.get('category');
+    if (currentCategory) {
+      document.querySelectorAll('.category-checkbox').forEach(cb => {
+        if (cb.dataset.category === currentCategory) {
+          cb.checked = true;
+        } else {
+          cb.checked = false;
+        }
+      });
+    } else {
+      // Default to "All Products" if no category in URL
+      const allProductsCheckbox = document.querySelector('.category-checkbox[data-category=""]');
+      if (allProductsCheckbox) {
+        allProductsCheckbox.checked = true;
+      }
+    }
+  });
+</script>

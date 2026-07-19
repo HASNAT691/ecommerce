@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:7
+    container_name: ecommerce-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  # Node.js Ecommerce App
+  app:
+    build: .
+    container_name: ecommerce-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/al-rehan-garments
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  mongo-data:

@@ -1,0 +1,103 @@
+<style>
+  body {
+    background: linear-gradient(135deg, #f6f8f9 0%, #e5ebee 100%);
+  }
+
+  .btn-gradient {
+    background: linear-gradient(to right, #4A90E2, #6BDFFF);
+    color: white;
+    border: none;
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(to right, #357ABD, #5AC8FA);
+  }
+
+  .subcategory-list {
+    padding-left: 1rem;
+    margin: 0;
+  }
+
+  .subcategory-list li {
+    list-style-type: disc;
+    font-size: 0.95rem;
+  }
+
+  .table-wrapper {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+    background-color: white;
+  }
+
+  .no-data {
+    text-align: center;
+    font-style: italic;
+    color: #888;
+    padding: 2rem;
+    background-color: #fff;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+  }
+</style>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-semibold">Categories</h3>
+    <a href="/admin/categories/create" class="btn btn-gradient">
+      <i class="fa fa-plus me-1"></i> Create New Category
+    </a>
+  </div>
+
+  <% if (categories.length> 0) { %>
+    <div class="table-wrapper">
+      <table class="table table-bordered table-hover align-middle mb-0">
+        <thead class="table-dark text-center">
+          <tr>
+            <th>ID</th>
+            <th>Category Name</th>
+            <th>Subcategories</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let i=0; i < categories.length; i++) { %>
+            <tr>
+              <td>
+                <%= categories[i]._id %>
+              </td>
+              <td class="fw-medium">
+                <%= categories[i].categoryName %>
+              </td>
+              <td>
+                <ul class="subcategory-list">
+                  <% categories[i].subcategories.forEach(function(sub) { %>
+                    <li>
+                      <%= sub %>
+                    </li>
+                    <% }) %>
+                </ul>
+              </td>
+              <td class="text-center">
+                <a href="/admin/categories/edit/<%= categories[i]._id %>" class="btn btn-outline-primary btn-sm me-1"
+                  title="Edit">
+                  <i class="fa fa-pen"></i>
+                </a>
+                <a href="/admin/categories/delete/<%= categories[i]._id %>" class="btn btn-outline-danger btn-sm"
+                  title="Delete">
+                  <i class="fa fa-trash"></i>
+                </a>
+              </td>
+            </tr>
+            <% } %>
+        </tbody>
+      </table>
+    </div>
+    <% } else { %>
+      <div class="no-data">
+        <i class="fa fa-info-circle me-1"></i> No categories available.
+      </div>
+      <% } %>
+</div>

@@ -1,0 +1,308 @@
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .admin-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .05);
+        background-color: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .table-responsive {
+        margin-top: 1.5rem;
+    }
+
+    .order-status-badge {
+        padding: .4em .6em;
+        border-radius: .375rem;
+        font-size: .8em;
+        font-weight: 600;
+    }
+
+    .status-Pending {
+        background-color: #ffc107;
+        color: #343a40;
+    }
+
+    /* Warning yellow */
+    .status-Confirmed {
+        background-color: #0d6efd;
+        color: #fff;
+    }
+
+    /*
+            Primary blue */
+    .status-Shipped {
+        background-color: #17a2b8;
+        color: #fff;
+    }
+
+    /* Info cyan */
+    .status-Delivered {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    /* Success green */
+    .status-Cancelled {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    /* Danger red */
+    .pagination .page-link {
+        border-radius: .375rem;
+        margin: 0 .25rem;
+        border: 1px solid #dee2e6;
+        color: #007bff;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+    }
+
+    .alert-message-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1050;
+    }
+
+    .alert-message {
+        background-color: #28a745;
+        /* Default for
+            success */
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: none;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    }
+
+    .alert-message.show {
+        display: block;
+        opacity: 1;
+    }
+</style>
+
+<body>
+    <div class="container-fluid py-4">
+        <h1 class="mb-4 text-center">Order Management</h1>
+
+        <div class="admin-card p-4">
+            <h4 class="mb-3">All Orders</h4>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Delivery</th>
+                            <th>Order Date</th>
+                            <th>Screenshot</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders && orders.length> 0) { %>
+                            <% orders.forEach(order=> { %>
+                                <tr data-order-id="<%= order._id %>">
+                                    <td>#<%= order.readableOrderId %>
+                                    </td>
+                                    <td>
+                                        <%= order.shippingAddress.name %>
+                                    </td>
+                                    <td>PKR <%= order.total.toFixed(2) %>
+                                    </td>
+                                    <td><span class="order-status-badge status-<%= order.status %>">
+                                            <%= order.status %>
+                                        </span></td>
+                                    <td>
+                                        <%= order.paymentMethod %>
+                                    </td>
+                                    <td>
+                                        <%= order.deliveryMethod %>
+                                    </td>
+                                    <td>
+                                        <%= new Date(order.orderDate).toLocaleDateString('en-PK', { year: 'numeric' ,
+                                            month: 'short' , day: 'numeric' }) %>
+                                    </td>
+                                    <td>
+                                        <% if (order.paymentMethod==='JazzCash' && order.paymentScreenshot) { %>
+                                            <a href="#" class="view-screenshot-link"
+                                                data-screenshot-path="<%= order.paymentScreenshot %>">View</a>
+                                            <% } else { %>
+                                                N/A
+                                                <% } %>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm status-dropdown"
+                                            data-order-id="<%= order._id %>"
+                                            data-payment-method="<%= order.paymentMethod %>"
+                                            data-screenshot-uploaded="<%= (order.paymentScreenshot ? 'true' : 'false') %>">
+                                            <option value="Pending" <%=order.status==='Pending' ? 'selected' : '' %>
+                                                >Pending</option>
+                                            <option value="Confirmed" <%=order.status==='Confirmed' ? 'selected' : '' %>
+                                                >Confirmed</option>
+                                            <option value="Shipped" <%=order.status==='Shipped' ? 'selected' : '' %>
+                                                >Shipped</option>
+                                            <option value="Delivered" <%=order.status==='Delivered' ? 'selected' : '' %>
+                                                >Delivered</option>
+                                            <option value="Cancelled" <%=order.status==='Cancelled' ? 'selected' : '' %>
+                                                >Cancelled</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="9" class="text-center py-4">No orders found.</td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Order pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item <%= !pagination.hasPrev ? 'disabled' : '' %>">
+                        <a class="page-link" href="/admin/orders?page=<%= pagination.page - 1 %>" tabindex="-1"
+                            aria-disabled="<%= !pagination.hasPrev %>">Previous</a>
+                    </li>
+                    <% for (let i=1; i <=pagination.totalPages; i++) { %>
+                        <li class="page-item <%= i === pagination.page ? 'active' : '' %>">
+                            <a class="page-link" href="/admin/orders?page=<%= i %>">
+                                <%= i %>
+                            </a>
+                        </li>
+                        <% } %>
+                            <li class="page-item <%= !pagination.hasNext ? 'disabled' : '' %>">
+                                <a class="page-link" href="/admin/orders?page=<%= pagination.page + 1 %>">Next</a>
+                            </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div class="modal fade" id="screenshotModal" tabindex="-1" aria-labelledby="screenshotModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="screenshotModalLabel">Payment Screenshot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalScreenshotImage" src="" alt="Payment Screenshot" class="img-fluid rounded">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Message Container -->
+    <div class="alert-message-container">
+        <div id="customAlert" class="alert-message"></div>
+    </div>
+
+    <script>
+        // Custom Alert Function
+        function showAlert(message, type = 'success') {
+            const alertBox = document.getElementById('customAlert');
+            alertBox.textContent = message;
+            alertBox.classList.remove('bg-success', 'bg-danger', 'bg-info', 'bg-warning', 'text-dark');
+
+            // Set background and text color based on type
+            if (type === 'success') { alertBox.style.backgroundColor = '#28a745'; alertBox.style.color = 'white'; }
+            else if (type === 'error') { alertBox.style.backgroundColor = '#dc3545'; alertBox.style.color = 'white'; }
+            else if (type === 'info') { alertBox.style.backgroundColor = '#17a2b8'; alertBox.style.color = 'white'; }
+            else if (type === 'warning') { alertBox.style.backgroundColor = '#ffc107'; alertBox.style.color = '#343a40'; }
+
+            alertBox.style.display = 'block';
+            alertBox.style.opacity = 1;
+
+            setTimeout(() => {
+                alertBox.style.opacity = 0;
+                setTimeout(() => { alertBox.style.display = 'none'; }, 500); // Hide after transition
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Handle status dropdown change
+            document.querySelectorAll('.status-dropdown').forEach(dropdown => {
+                dropdown.addEventListener('change', async function () {
+                    const orderId = this.dataset.orderId;
+                    const newStatus = this.value;
+                    const paymentMethod = this.dataset.paymentMethod;
+                    const screenshotUploaded = this.dataset.screenshotUploaded === 'true';
+                    const previousStatus = this.dataset.previousStatus || 'Pending'; // Get stored previous status
+
+                    // Prevent changing status to Confirmed/Delivered if JazzCash and no screenshot
+                    if ((newStatus === 'Confirmed' || newStatus === 'Delivered') && paymentMethod === 'JazzCash' && !screenshotUploaded) {
+                        showAlert('Cannot confirm or deliver JazzCash order without a payment screenshot.', 'warning');
+                        this.value = previousStatus; // Revert to previous status
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/admin/orders/${orderId}/update-status`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ status: newStatus })
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                            showAlert(`Order #${orderId.slice(-8)} status updated to ${newStatus}.`, 'success');
+                            // Update the badge color instantly
+                            const badge = this.closest('tr').querySelector('.order-status-badge');
+                            if (badge) {
+                                badge.className = `order-status-badge status-${newStatus}`;
+                                badge.textContent = newStatus;
+                            }
+                            this.dataset.previousStatus = newStatus; // Update previous status for future changes
+                        } else {
+                            showAlert(data.error || 'Failed to update order status.', 'error');
+                            this.value = previousStatus; // Revert on error
+                        }
+                    } catch (error) {
+                        console.error('Error updating order status:', error);
+                        showAlert('An error occurred while updating order status.', 'error');
+                        this.value = previousStatus; // Revert on error
+                    }
+                });
+
+                // Store initial status to revert on validation failure
+                dropdown.dataset.previousStatus = dropdown.value;
+            });
+
+            // Handle view screenshot link click
+            document.querySelectorAll('.view-screenshot-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const screenshotPath = this.dataset.screenshotPath;
+                    const modalImage = document.getElementById('modalScreenshotImage');
+                    // Ensure the path is correct for serving static files
+                    modalImage.src = `/${screenshotPath}`; // Assuming /uploads is the root for static files
+                    const screenshotModal = new bootstrap.Modal(document.getElementById('screenshotModal'));
+                    screenshotModal.show();
+                });
+            });
+        });
+    </script>
+</body>

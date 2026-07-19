@@ -1,0 +1,97 @@
+:root {
+    --primary-color: #00bfff;
+    --light-color: #ecf0f1;
+    --hover-color: #3498db;
+}
+
+body {
+    background-color: #f4f6f9;
+    color: #34495e;
+}
+
+.dashboard-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-card-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.dashboard-card-header i {
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.dashboard-stats {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.stat-item:not(:last-child) {
+    border-right: 1px solid #eee;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #34495e;
+}
+
+.table-responsive {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.recent-orders-table th, .recent-orders-table td {
+    white-space: nowrap;
+}
+
+.pagination .page-link {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.pagination .page-link:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.pagination .page-item:not(.active) .page-link:hover {
+    background-color: rgba(0, 191, 255, 0.1);
+    color: var(--primary-color);
+}

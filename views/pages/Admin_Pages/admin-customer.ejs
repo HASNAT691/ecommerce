@@ -1,0 +1,109 @@
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .admin-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .05);
+        background-color: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .table-responsive {
+        margin-top: 1.5rem;
+    }
+
+    .pagination .page-link {
+        border-radius:
+            .375rem;
+        margin: 0 .25rem;
+        border: 1px solid #dee2e6;
+        color: #007bff;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4 text-center">Customer Management</h1>
+
+    <div class="admin-card p-4">
+        <h4 class="mb-3">All Customers</h4>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Customer ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Registered On</th>
+                        <th>Orders Count</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (customers && customers.length> 0) { %>
+                        <% customers.forEach(customer=> { %>
+                            <tr>
+                                <td>
+                                    <%= customer._id.toString().slice(-8) %>
+                                </td>
+                                <td>
+                                    <%= customer.name || 'N/A' %>
+                                </td>
+                                <td>
+                                    <%= customer.email %>
+                                </td>
+                                <td>
+                                    <%= customer.phone || 'N/A' %>
+                                </td>
+                                <td>
+                                    <%= new Date(customer.createdAt).toLocaleDateString('en-PK', { year: 'numeric' ,
+                                        month: 'short' , day: 'numeric' }) %>
+                                </td>
+                                <td>
+                                    <%= customer.orderCount %>
+                                </td>
+                                <td>
+                                    <a href="/admin/customers/<%= customer._id %>/orders"
+                                        class="btn btn-sm btn-info">View Orders</a>
+                                </td>
+                            </tr>
+                            <% }); %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">No customers found.</td>
+                                    </tr>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Customer pagination">
+            <ul class="pagination justify-content-center">
+                <li class="page-item <%= !pagination.hasPrev ? 'disabled' : '' %>">
+                    <a class="page-link" href="/admin/customers?page=<%= pagination.page - 1 %>" tabindex="-1"
+                        aria-disabled="<%= !pagination.hasPrev %>">Previous</a>
+                </li>
+                <% for (let i=1; i <=pagination.totalPages; i++) { %>
+                    <li class="page-item <%= i === pagination.page ? 'active' : '' %>">
+                        <a class="page-link" href="/admin/customers?page=<%= i %>">
+                            <%= i %>
+                        </a>
+                    </li>
+                    <% } %>
+                        <li class="page-item <%= !pagination.hasNext ? 'disabled' : '' %>">
+                            <a class="page-link" href="/admin/customers?page=<%= pagination.page + 1 %>">Next</a>
+                        </li>
+            </ul>
+        </nav>
+    </div>
+</div>

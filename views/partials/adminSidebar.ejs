@@ -1,0 +1,44 @@
+<link rel="stylesheet" href="/css/adminSB.css">
+
+<div class="sidebar d-flex flex-column p-2">
+    <a href="/" class="nav-link text-center mb-4">
+        <i class="fas fa-store fs-4 text-white"></i>
+    </a>
+
+    <a href="/admin/dashboard" class="nav-link mb-2">
+        <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
+    </a>
+
+    <a class="nav-link mb-2" data-bs-toggle="collapse" href="#productsMenu" role="button" aria-expanded="false"
+        aria-controls="productsMenu">
+        <i class="fas fa-box"></i><span> Products</span>
+    </a>
+    <div class="collapse submenu" id="productsMenu">
+        <a href="/admin/products/create" class="nav-link">Add Product</a>
+        <a href="/admin/products" class="nav-link">View Products</a>
+    </div>
+
+    <a class="nav-link mb-2" data-bs-toggle="collapse" href="#categoriesMenu" role="button" aria-expanded="false"
+        aria-controls="categoriesMenu">
+        <i class="fas fa-list"></i><span> Categories</span>
+    </a>
+    <div class="collapse submenu" id="categoriesMenu">
+        <a href="/admin/categories/create" class="nav-link">Add Category</a>
+        <a href="/admin/categories" class="nav-link">View Categories</a>
+    </div>
+
+    <a href="/admin/customers" class="nav-link mb-2">
+        <i class="fas fa-users"></i><span> Customers</span>
+    </a>
+
+    <a href="/admin/orders" class="nav-link mb-2">
+        <i class="fas fa-shopping-cart"></i><span> Orders</span>
+    </a>
+
+    <a href="/admin/analytics" class="nav-link mb-2">
+        <i class="fas fa-chart-line"></i><span> Analytics</span>
+    </a>
+    <a href="/logout" class="nav-link mt-auto">
+        <i class="fas fa-sign-out-alt"></i><span> Logout</span>
+    </a>
+</div>

@@ -1,0 +1,135 @@
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .product-card-detail {
+        background-color: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, .05);
+        padding: 2rem;
+    }
+
+    .product-image-carousel .carousel-item img {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        border-radius: 0.75rem;
+    }
+
+    .product-image-carousel .carousel-indicators button {
+        background-color: #0d6efd;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin: 0 5px;
+    }
+
+    .product-detail-price {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #343a40;
+    }
+
+    .product-stock {
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+    }
+
+    .size-button {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        background-color: #fff;
+        color: #495057;
+    }
+
+    .size-button:hover,
+    .size-button.selected {
+        background-color: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd;
+    }
+
+    .btn-add-to-cart {
+        font-size: 1.1rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="product-card-detail">
+        <div class="row g-5">
+            <div class="col-md-7">
+                <div id="productImageCarousel" class="carousel slide product-image-carousel" data-bs-ride="carousel">
+
+                    <% if (product.images && product.images.length> 0) { %>
+                        <div class="carousel-indicators">
+                            <% product.images.forEach((img, i)=> { %>
+                                <button type="button" data-bs-target="#productImageCarousel" data-bs-slide-to="<%= i %>"
+                                    class="<%= i === 0 ? 'active' : '' %>" aria-label="Slide <%= i + 1 %>"></button>
+                                <% }) %>
+                        </div>
+
+                        <div class="carousel-inner">
+                            <% product.images.forEach((img, i)=> { %>
+                                <div class="carousel-item <%= i === 0 ? 'active' : '' %>">
+                                    <img src="<%= img.startsWith('http') ? img : '/uploads/' + img %>" class="d-block w-100"
+                                        alt="Product Image <%= i + 1 %>">
+                                </div>
+                                <% }) %>
+                        </div>
+
+                        <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel"
+                            data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel"
+                            data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                        <% } else { %>
+                            <img src="/images/placeholder.jpg" class="img-fluid" alt="No Image Available">
+                            <% } %>
+
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <h1 class="mb-3">
+                    <%= product.title %>
+                </h1>
+                <p class="product-detail-price">PKR <%= product.price.toLocaleString() %>
+                </p>
+                <p class="product-stock text-success"><i class="fas fa-check-circle me-2"></i>In Stock (<span
+                        id="stockCount">
+                        <%= product.inStock %>
+                    </span> available)</p>
+
+                <h5 class="mb-2">Description:</h5>
+                <p class="text-muted">
+                    <%= product.description %>
+                </p>
+
+                <% if (product.sizes && product.sizes.length> 0) { %>
+                    <div class="mb-4">
+                        <h5 class="mb-2">Available Sizes:</h5>
+                        <% product.sizes.forEach(size=> { %>
+                            <button class="size-button" data-size="<%= size %>">
+                                <%= size %>
+                            </button>
+                            <% }) %>
+                    </div>
+                    <% } %>
+            </div>
+        </div>
+    </div>
+</div>

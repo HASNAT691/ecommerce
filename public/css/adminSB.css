@@ -1,0 +1,40 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 200px; /* Fixed full width */
+  background-color: #343a40;
+  overflow-x: hidden;
+  z-index: 100;
+}
+
+.sidebar .nav-link {
+  color: #adb5bd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.sidebar .nav-link:hover {
+  color: #fff;
+  background-color: #495057;
+}
+
+.sidebar .nav-link i {
+  margin-right: 10px;
+}
+
+.sidebar .nav-link span {
+  display: inline; /* Always show label */
+}
+
+.submenu .nav-link {
+  padding-left: 2.5rem;
+  font-size: 0.9rem;
+}
+.content {
+  margin-left: 220px; /* Fixed to match sidebar width */
+  padding: 20px;
+}

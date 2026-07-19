@@ -1,0 +1,66 @@
+<!-- views/pages/Main_Site_pages/order-confirmed.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed!</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjLqNPzNF5w2s6FmXXX4lJjGGFYhYGzLw+tQ8f/v5wS" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .confirmation-card {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+        }
+        .success-icon {
+            color: #28a745;
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounceIn 0.8s forwards; /* Simple animation */
+        }
+        @keyframes bounceIn {
+            0%, 20%, 40%, 60%, 80%, 100% {
+                transition-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            }
+            0% { opacity: 0; transform: scale3d(0.3, 0.3, 0.3); }
+            20% { transform: scale3d(1.1, 1.1, 1.1); }
+            40% { transform: scale3d(0.9, 0.9, 0.9); }
+            60% { opacity: 1; transform: scale3d(1.03, 1.03, 1.03); }
+            80% { transform: scale3d(0.97, 0.97, 0.97); }
+            100% { opacity: 1; transform: scale3d(1, 1, 1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="confirmation-card">
+        <i class="fas fa-check-circle success-icon"></i>
+        <h1 class="mb-3">Order Placed Successfully!</h1>
+        <p class="lead">Thank you for your purchase. Your order has been confirmed and is being processed.</p>
+        <p>Your Order ID: <strong><%= order.readableOrderId %></strong></p>
+        <p class="text-muted small">Please take a screenshot of this Order ID for future tracking and reference.</p>
+        <p>You will be redirected to the products page shortly...</p>
+        <a href="/secondpage" class="btn btn-primary mt-3">Continue Shopping</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        // Redirect after a few seconds
+        setTimeout(() => {
+            window.location.href = '/secondpage';
+        }, 5000); // Redirect after 5 seconds to give time to see ID
+    </script>
+</body>
+</html>

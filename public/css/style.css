@@ -16,7 +16,7 @@ body {
   overflow-x: hidden;
 }
 
-img { max-width: 100%; height: auto; }
+img { max-width: 100%; }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { display: none; }
@@ -43,6 +43,34 @@ img { max-width: 100%; height: auto; }
 .category-hover:hover .dropdown-menu { display: block; }
 
 #whatsapp { color: #25D366; }
+
+/* ── Navbar icon sizing: preserve the height attribute on small icons ── */
+.navbar .nav-link img {
+  height: 28px !important;
+  width: auto !important;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ── Navbar: vertical alignment for all nav items ── */
+.navbar .nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px 6px;
+}
+.navbar .nav-link span.d-block {
+  font-size: 10px;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+.navbar .nav-link .badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
 
 /* ═══════════════════════════════════════════════
    LANDING PAGE HERO SLIDER

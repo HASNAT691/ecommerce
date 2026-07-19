@@ -16,7 +16,7 @@ body {
   overflow-x: hidden;
 }
 
-img { max-width: 100%; height: auto; display: block; }
+img { max-width: 100%; height: auto; }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { display: none; }
@@ -47,13 +47,16 @@ img { max-width: 100%; height: auto; display: block; }
 /* ═══════════════════════════════════════════════
    LANDING PAGE HERO SLIDER
 ═══════════════════════════════════════════════ */
-.container-fluid {
-  overflow-x: hidden;
+
+.gallery { line-height: 0; }
+
+/* Only zero-pad the hero slider wrapper, NOT all container-fluid elements */
+.gallery .container-fluid,
+.gallery-section-wrapper {
   padding: 0 !important;
   margin: 0 !important;
+  overflow-x: hidden;
 }
-
-.gallery { line-height: 0; padding: 5px; }
 
 .gallery-section {
   height: calc(100vh - 70px);
@@ -217,9 +220,6 @@ img { max-width: 100%; height: auto; display: block; }
 /* ── Large tablet (≤992px) ── */
 @media (max-width: 992px) {
   .gallery-section { height: 60vh; }
-
-  /* Navbar: hide desktop category links */
-  .d-none.d-lg-block { display: none !important; }
 
   /* Admin content push */
   .content { margin-left: 80px; }

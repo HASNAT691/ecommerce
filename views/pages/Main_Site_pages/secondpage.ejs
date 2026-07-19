@@ -374,14 +374,16 @@
       const data = await response.json();
       if (response.ok) {
         showAlert('Product added to cart!', 'success');
-        // Optionally update cart count in navbar here if you have an element for it
-        document.getElementById('cart-count').textContent = data.cartCount;
+        const cartCountEl = document.getElementById('cartCount');
+        if (cartCountEl) {
+          cartCountEl.textContent = data.cartCount;
+        }
       } else {
         showAlert(data.error || 'Error adding product to cart', 'error');
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
-      showAlert('An unexpected error occurred this line gives error.', 'error');
+      showAlert('An unexpected error occurred while adding the product to your cart.', 'error');
     }
   }
 

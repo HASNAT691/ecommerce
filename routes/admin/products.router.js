@@ -739,7 +739,22 @@ router.post("/api/track-order", async (req, res) => {
             return res.status(404).json({ error: "No order found with that ID." });
         }
 
-        res.status(200).json({ success: true, order: order });
+        // Mask sensitive customer information for public tracking
+        const maskedOrder = {
+            ...order,
+            shippingAddress: {
+                name: order.shippingAddress.name ? order.shippingAddress.name.replace(/^(.)(.*)(.)$/, (m, a, b, c) => a + "*".repeat(b.length) + c) : "N/A",
+                addressLine1: "Masked for Privacy",
+                addressLine2: order.shippingAddress.addressLine2 ? "Masked" : "",
+                city: order.shippingAddress.city || "",
+                state: order.shippingAddress.state || "",
+                zipCode: "****",
+                country: order.shippingAddress.country || "Pakistan",
+                phone: order.shippingAddress.phone ? order.shippingAddress.phone.replace(/.(?=.{4})/g, "*") : "N/A"
+            }
+        };
+
+        res.status(200).json({ success: true, order: maskedOrder });
 
     } catch (error) {
         console.error("Error tracking order:", error);

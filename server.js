@@ -93,7 +93,24 @@ app.get("/", (req, res) => {
   res.render("pages/Main_Site_pages/landingPage");
 });
 
+// 404 Page Not Found Handler
+app.use((req, res, next) => {
+  res.status(404).render("pages/Main_Site_pages/error", {
+    title: "Page Not Found",
+    message: "The page you are looking for does not exist or has been moved.",
+    layout: "layout.ejs"
+  });
+});
 
+// 500 Global Server Error Handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled Server Error:", err);
+  res.status(500).render("pages/Main_Site_pages/error", {
+    title: "Internal Server Error",
+    message: "An internal server error occurred. We are working to fix this as quickly as possible. Please try again shortly.",
+    layout: "layout.ejs"
+  });
+});
 
 app.listen(5000, () => {
   console.log("Server started at location : 5000");

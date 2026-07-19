@@ -138,7 +138,7 @@
                                             month: 'short' , day: 'numeric' }) %>
                                     </td>
                                     <td>
-                                        <% if (order.paymentMethod==='JazzCash' && order.paymentScreenshot) { %>
+                                        <% if (order.paymentMethod==='EasyPaisa' && order.paymentScreenshot) { %>
                                             <a href="#" class="view-screenshot-link"
                                                 data-screenshot-path="<%= order.paymentScreenshot %>">View</a>
                                             <% } else { %>
@@ -251,9 +251,9 @@
                     const screenshotUploaded = this.dataset.screenshotUploaded === 'true';
                     const previousStatus = this.dataset.previousStatus || 'Pending'; // Get stored previous status
 
-                    // Prevent changing status to Confirmed/Delivered if JazzCash and no screenshot
-                    if ((newStatus === 'Confirmed' || newStatus === 'Delivered') && paymentMethod === 'JazzCash' && !screenshotUploaded) {
-                        showAlert('Cannot confirm or deliver JazzCash order without a payment screenshot.', 'warning');
+                    // Prevent changing status to Confirmed/Delivered if EasyPaisa and no screenshot
+                    if ((newStatus === 'Confirmed' || newStatus === 'Delivered') && paymentMethod === 'EasyPaisa' && !screenshotUploaded) {
+                        showAlert('Cannot confirm or deliver EasyPaisa order without a payment screenshot.', 'warning');
                         this.value = previousStatus; // Revert to previous status
                         return;
                     }
@@ -297,8 +297,7 @@
                     e.preventDefault();
                     const screenshotPath = this.dataset.screenshotPath;
                     const modalImage = document.getElementById('modalScreenshotImage');
-                    // Ensure the path is correct for serving static files
-                    modalImage.src = `/${screenshotPath}`; // Assuming /uploads is the root for static files
+                    modalImage.src = (screenshotPath && screenshotPath.startsWith('http')) ? screenshotPath : `/${screenshotPath}`;
                     const screenshotModal = new bootstrap.Modal(document.getElementById('screenshotModal'));
                     screenshotModal.show();
                 });

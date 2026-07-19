@@ -6,6 +6,15 @@ const User = require("../model/user.model");
 const mongoose = require('mongoose'); // Import mongoose for ObjectId
 const fs = require('fs'); // For file system operations (deleting screenshots)
 const path = require('path'); // For path manipulation
+const rateLimit = require("express-rate-limit");
+
+const checkoutLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit checkout submissions to 5 per 15 minutes per IP
+  message: { error: "Too many checkouts from this IP, please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // For handling JazzCash screenshot uploads
 const multer = require('multer');
@@ -268,8 +277,8 @@ router.get("/checkout", isAuthenticated, async (req, res) => {
 });
 
 // POST /checkout - Processes the order
-// Use upload.single('screenshot') for the file upload if JazzCash is selected
-router.post("/checkout", isAuthenticated, upload.single('screenshot'), async (req, res) => {
+// Use upload.single('screenshot') for the file upload if EasyPaisa is selected
+router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screenshot'), async (req, res) => {
   try {
     const cart = req.session.cart;
 

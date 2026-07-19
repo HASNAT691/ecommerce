@@ -48,7 +48,7 @@ router.post("/user/login", authLimiter, validateStringFields(["email", "password
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.render("pages/Main_Site_pages/user-login", {
-        layout: false,
+        layout: "layout",
         error: "Invalid email or password",
       });
     }
@@ -63,7 +63,7 @@ router.post("/user/login", authLimiter, validateStringFields(["email", "password
   } catch (error) {
     console.error("Login error:", error);
     res.render("pages/Main_Site_pages/user-login", {
-      layout: false,
+      layout: "layout",
       error: "An error occurred during login",
     });
   }
@@ -86,7 +86,7 @@ router.post("/user/register", authLimiter, validateStringFields(["email", "passw
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.render("pages/Main_Site_pages/user-register", {
-        layout: false,
+        layout: "layout",
         error: "Email already registered",
       });
     }
@@ -111,7 +111,7 @@ router.post("/user/register", authLimiter, validateStringFields(["email", "passw
   } catch (error) {
     console.error("Registration error:", error);
     res.render("pages/Main_Site_pages/user-register", {
-      layout: false,
+      layout: "layout",
       error: "Error during registration. Please try again.",
     });
   }

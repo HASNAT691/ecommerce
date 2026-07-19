@@ -31,12 +31,12 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['COD', 'JazzCash'],
+        enum: ['COD', 'EasyPaisa'],
         required: true
     },
     paymentScreenshot: {
         type: String,
-        default: null // Will store path to the screenshot if JazzCash is used
+        default: null // Will store path to the screenshot if EasyPaisa is used
     },
     shippingAddress: {
         name: { type: String, required: true },

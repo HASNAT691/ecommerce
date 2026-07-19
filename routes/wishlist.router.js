@@ -3,41 +3,52 @@ const router = express.Router();
 const Wishlist = require('../model/wishlist.model');
 const User = require('../model/user.model');
 
-// Enhanced authentication middleware
+// Enhanced authentication middleware (with redirect support for page requests)
 const isAuthenticated = async (req, res, next) => {
     try {
-        const userId = req.cookies.userId;
+        const userId = req.session.userId;
         if (!userId) {
-            return res.status(401).json({
-                success: false,
-                message: 'Please log in to access wishlist'
-            });
+            if (req.xhr || (req.headers.accept && req.headers.accept.indexOf("json") > -1)) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Please log in to access wishlist'
+                });
+            }
+            req.session.returnTo = req.originalUrl;
+            return res.redirect("/user/login");
         }
 
         const user = await User.findById(userId);
         if (!user || !user.email) {
-            res.clearCookie('userId');
-            return res.status(401).json({
-                success: false,
-                message: 'User not found or invalid, please login again'
-            });
+            delete req.session.userId;
+            if (req.xhr || (req.headers.accept && req.headers.accept.indexOf("json") > -1)) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'User not found or invalid, please login again'
+                });
+            }
+            req.session.returnTo = req.originalUrl;
+            return res.redirect("/user/login");
         }
 
         req.user = user;
         next();
     } catch (error) {
         console.error('Authentication error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Authentication error'
-        });
+        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf("json") > -1)) {
+            return res.status(500).json({
+                success: false,
+                message: 'Authentication error'
+            });
+        }
+        res.status(500).send('Authentication error');
     }
 };
 
 // View wishlist - protected route with email verification
 router.get('/wishlist', isAuthenticated, async (req, res) => {
     try {
-        const userId = req.cookies.userId;
+        const userId = req.session.userId;
         const wishlist = await Wishlist.findOne({ userId });
         const user = req.user; // User is now available from middleware
 
@@ -57,7 +68,7 @@ router.get('/wishlist', isAuthenticated, async (req, res) => {
 router.post('/add-to-wishlist', isAuthenticated, async (req, res) => {
     try {
         const { productId, price, title, picture } = req.body;
-        const userId = req.cookies.userId;
+        const userId = req.session.userId;
         const userEmail = req.user.email; // Get email from authenticated user
 
         // Find existing wishlist or create new one
@@ -114,7 +125,7 @@ router.post('/add-to-wishlist', isAuthenticated, async (req, res) => {
 // Remove from wishlist - protected route
 router.delete('/remove-from-wishlist/:productId', isAuthenticated, async (req, res) => {
     try {
-        const userId = req.cookies.userId;
+        const userId = req.session.userId;
         const productId = req.params.productId;
 
         const wishlist = await Wishlist.findOne({ userId });

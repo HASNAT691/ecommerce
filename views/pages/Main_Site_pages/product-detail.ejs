@@ -51,15 +51,25 @@
 
     .size-button:hover,
     .size-button.selected {
-        background-color: #0d6efd;
+        background-color: #111;
         color: #fff;
-        border-color: #0d6efd;
+        border-color: #111;
     }
 
     .btn-add-to-cart {
         font-size: 1.1rem;
         padding: 0.75rem 1.5rem;
         border-radius: 0.5rem;
+    }
+
+    .product-card {
+        transition: transform 0.2s;
+        border: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
     }
 </style>
 
@@ -69,7 +79,7 @@
             <div class="col-md-7">
                 <div id="productImageCarousel" class="carousel slide product-image-carousel" data-bs-ride="carousel">
 
-                    <% if (product.images && product.images.length> 0) { %>
+                    <% if (product.images && product.images.length > 0) { %>
                         <div class="carousel-indicators">
                             <% product.images.forEach((img, i)=> { %>
                                 <button type="button" data-bs-target="#productImageCarousel" data-bs-slide-to="<%= i %>"
@@ -86,19 +96,21 @@
                                 <% }) %>
                         </div>
 
-                        <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel"
-                            data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Previous</span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel"
-                            data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Next</span>
-                        </button>
-                        <% } else { %>
-                            <img src="/images/placeholder.jpg" class="img-fluid" alt="No Image Available">
-                            <% } %>
+                        <% if (product.images.length > 1) { %>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel"
+                                data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel"
+                                data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        <% } %>
+                    <% } else { %>
+                        <img src="/images/placeholder.jpg" class="img-fluid" alt="No Image Available">
+                    <% } %>
 
                 </div>
             </div>
@@ -109,17 +121,17 @@
                 </h1>
                 <p class="product-detail-price">PKR <%= product.price.toLocaleString() %>
                 </p>
-                <p class="product-stock text-success"><i class="fas fa-check-circle me-2"></i>In Stock (<span
-                        id="stockCount">
-                        <%= product.inStock %>
-                    </span> available)</p>
+                <p class="product-stock <%= product.inStock > 0 ? 'text-success' : 'text-danger' %>">
+                    <i class="fas <%= product.inStock > 0 ? 'fa-check-circle' : 'fa-times-circle' %> me-2"></i>
+                    <%= product.inStock > 0 ? 'In Stock' : 'Out of Stock' %> (<span id="stockCount"><%= product.inStock %></span> available)
+                </p>
 
                 <h5 class="mb-2">Description:</h5>
                 <p class="text-muted">
-                    <%= product.description %>
+                    <%= product.description || "No description available." %>
                 </p>
 
-                <% if (product.sizes && product.sizes.length> 0) { %>
+                <% if (product.sizes && product.sizes.length > 0) { %>
                     <div class="mb-4">
                         <h5 class="mb-2">Available Sizes:</h5>
                         <% product.sizes.forEach(size=> { %>
@@ -128,8 +140,178 @@
                             </button>
                             <% }) %>
                     </div>
-                    <% } %>
+                <% } %>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-dark btn-lg btn-add-to-cart" id="addToCartBtn"
+                        data-product-id="<%= product._id %>" <%= product.inStock === 0 ? 'disabled' : '' %>>
+                        <i class="fas fa-shopping-bag me-2"></i>
+                        <%= product.inStock === 0 ? 'Out of Stock' : 'Add to Bag' %>
+                    </button>
+                    <button class="btn btn-outline-danger btn-lg add-to-wishlist"
+                        data-product-id="<%= product._id %>"
+                        data-product-title="<%= product.title %>"
+                        data-product-price="<%= product.price %>"
+                        data-product-picture="<%= product.images && product.images[0] ? product.images[0] : '' %>">
+                        <i class="far fa-heart me-2"></i>Add to Wishlist
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Similar Products Section -->
+    <div class="similar-products-section mt-5 py-4">
+        <h3 class="mb-4 text-center">Similar Products You Might Like</h3>
+        <% if (similarProducts && similarProducts.length > 0) { %>
+            <div class="row row-cols-2 row-cols-md-4 g-4">
+                <% similarProducts.forEach(similarProduct=> { %>
+                    <div class="col">
+                        <div class="card h-100 product-card">
+                            <% if (similarProduct.images && similarProduct.images.length > 0) { %>
+                                <img src="<%= similarProduct.images[0].startsWith('http') ? similarProduct.images[0] : '/uploads/' + similarProduct.images[0] %>" class="card-img-top"
+                                    alt="<%= similarProduct.title %>" style="height: 250px; object-fit: cover;"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/400x500/f0f0f0/333333?text=No+Image';">
+                            <% } else { %>
+                                <img src="https://placehold.co/400x500/f0f0f0/333333?text=No+Image"
+                                    class="card-img-top" alt="No Image Available" style="height: 250px; object-fit: cover;">
+                            <% } %>
+                            <div class="card-body text-center">
+                                <h5 class="card-title text-truncate" style="font-size: 1rem;">
+                                    <%= similarProduct.title %>
+                                </h5>
+                                <p class="card-text text-muted">PKR <%= similarProduct.price.toLocaleString() %>
+                                </p>
+                                <a href="/product/<%= similarProduct._id %>"
+                                    class="btn btn-sm btn-dark text-uppercase">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <p class="text-center text-muted">No similar products found.</p>
+        <% } %>
+    </div>
 </div>
+
+<!-- Custom Alert Message Container -->
+<div class="alert-message-container">
+    <div id="customAlert" class="alert-message"></div>
+</div>
+
+<script>
+    // Custom Alert Function (replaces window.alert)
+    function showAlert(message, type = "success") {
+        let alertContainer = document.querySelector('.alert-message-container');
+        if (!alertContainer) {
+            alertContainer = document.createElement('div');
+            alertContainer.className = 'alert-message-container';
+            alertContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 1050;';
+            document.body.appendChild(alertContainer);
+        }
+
+        let alertBox = document.getElementById('customAlert');
+        if (!alertBox) {
+            alertBox = document.createElement('div');
+            alertBox.id = 'customAlert';
+            alertBox.className = 'alert-message';
+            alertBox.style.cssText = 'background-color: #28a745; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); display: none; opacity: 0; transition: opacity 0.5s ease-in-out;';
+            alertContainer.appendChild(alertBox);
+        }
+
+        alertBox.textContent = message;
+
+        if (type === 'success') { alertBox.style.backgroundColor = '#28a745'; alertBox.style.color = 'white'; }
+        else if (type === 'error') { alertBox.style.backgroundColor = '#dc3545'; alertBox.style.color = 'white'; }
+        else if (type === 'info') { alertBox.style.backgroundColor = '#17a2b8'; alertBox.style.color = 'white'; }
+        else if (type === 'warning') { alertBox.style.backgroundColor = '#ffc107'; alertBox.style.color = '#343a40'; }
+
+        alertBox.style.display = 'block';
+        alertBox.style.opacity = 1;
+
+        setTimeout(() => {
+            alertBox.style.opacity = 0;
+            setTimeout(() => { alertBox.style.display = 'none'; }, 500);
+        }, 3000);
+    }
+
+    // Add to Cart Logic
+    document.getElementById('addToCartBtn').addEventListener('click', async function () {
+        const productId = this.dataset.productId;
+        if (this.disabled) {
+            showAlert("This product is out of stock.", "warning");
+            return;
+        }
+
+        try {
+            const response = await fetch('/add-to-cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                showAlert('Product added to cart!', 'success');
+                
+                // Sync cart badges
+                const cartCountEl = document.getElementById('cartCount');
+                if (cartCountEl) cartCountEl.textContent = data.cartCount;
+                const mobileCartCountEl = document.getElementById('mobileCartCount');
+                if (mobileCartCountEl) mobileCartCountEl.textContent = data.cartCount;
+            } else {
+                showAlert(data.error || 'Failed to add product to cart.', 'error');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            showAlert('An unexpected error occurred.', 'error');
+        }
+    });
+
+    // Add to Wishlist Logic
+    document.querySelector('.add-to-wishlist').addEventListener('click', async function (e) {
+        e.preventDefault();
+        const productId = this.dataset.productId;
+        const title = this.dataset.productTitle;
+        const price = this.dataset.productPrice;
+        const picture = this.dataset.productPicture;
+
+        try {
+            const response = await fetch('/add-to-wishlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ productId, title, price, picture })
+            });
+
+            if (response.status === 401) {
+                if (confirm('Please log in to use wishlist features. Go to login page?')) {
+                    window.location.href = '/user/login';
+                }
+                return;
+            }
+
+            const result = await response.json();
+            showAlert(result.message, result.success ? 'success' : 'error');
+
+            if (result.success) {
+                this.querySelector('i').className = 'fas fa-heart me-2';
+                this.classList.remove('btn-outline-danger');
+                this.classList.add('btn-danger', 'text-white');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('An error occurred while adding to wishlist', 'error');
+        }
+    });
+
+    // Size selection logic
+    document.querySelectorAll('.size-button').forEach(button => {
+        button.addEventListener('click', function () {
+            document.querySelectorAll('.size-button').forEach(btn => btn.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+</script>

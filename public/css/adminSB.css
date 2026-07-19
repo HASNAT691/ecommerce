@@ -38,3 +38,29 @@
   margin-left: 220px; /* Fixed to match sidebar width */
   padding: 20px;
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+  }
+  .sidebar .nav-link span {
+    display: none !important;
+  }
+  .sidebar .nav-link i {
+    margin-right: 0;
+    font-size: 1.2rem;
+  }
+  .sidebar .nav-link {
+    text-align: center;
+    padding: 10px 0;
+  }
+  .submenu .nav-link {
+    padding-left: 0;
+    text-align: center;
+    font-size: 0.8rem;
+  }
+  .content {
+    margin-left: 75px !important;
+    padding: 10px;
+  }
+}

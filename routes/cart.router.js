@@ -303,11 +303,15 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
     } = req.body;
 
     // Determine shipping charge
+    let totalItems = 0;
+    cart.items.forEach(item => { totalItems += item.quantity; });
+    let additionalItemFee = totalItems > 1 ? (totalItems - 1) * 50 : 0;
+    
     let shippingCharge = 0;
     if (deliveryMethod === 'Standard') {
-      shippingCharge = 200;
+      shippingCharge = 200 + additionalItemFee;
     } else if (deliveryMethod === 'Express') {
-      shippingCharge = 500;
+      shippingCharge = 500 + additionalItemFee;
     }
 
     const subtotal = cart.total;

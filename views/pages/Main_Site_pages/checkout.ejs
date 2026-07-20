@@ -203,6 +203,13 @@
 
               <!-- Delivery Method -->
               <div class="accordion-item checkout-card">
+                <% 
+                  let totalItems = 0;
+                  cart.items.forEach(item => { totalItems += item.quantity; });
+                  let additionalItemFee = totalItems > 1 ? (totalItems - 1) * 50 : 0;
+                  let standardShippingFee = 200 + additionalItemFee;
+                  let expressShippingFee = 500 + additionalItemFee;
+                %>
                 <h2 class="accordion-header" id="headingTwo">
                   <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                     data-bs-target="#collapseTwo">
@@ -215,12 +222,12 @@
                       <div class="form-check mb-2">
                         <input class="form-check-input" type="radio" name="delivery" id="deliveryStandard"
                           value="Standard" required checked />
-                        <label class="form-check-label" for="deliveryStandard">Standard (PKR 200, 3-5 days)</label>
+                        <label class="form-check-label" for="deliveryStandard">Standard (PKR <%= standardShippingFee %>, 3-5 days)</label>
                       </div>
                       <div class="form-check">
                         <input class="form-check-input" type="radio" name="delivery" id="deliveryExpress"
                           value="Express" required />
-                        <label class="form-check-label" for="deliveryExpress">Express (PKR 500, 1-2 days)</label>
+                        <label class="form-check-label" for="deliveryExpress">Express (PKR <%= expressShippingFee %>, 1-2 days)</label>
                       </div>
                     </form>
                   </div>
@@ -293,11 +300,11 @@
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                       Shipping (<span id="deliveryMethodSummary">Standard</span>)
-                      <span id="shippingFeeSummary">PKR 200</span>
+                      <span id="shippingFeeSummary">PKR <%= standardShippingFee %></span>
                     </li>
                     <li class="list-group-item total-box d-flex justify-content-between">
                       <strong>Total</strong>
-                      <strong id="totalSummary">PKR <%= (cart.total + 200).toFixed(2) %></strong>
+                      <strong id="totalSummary">PKR <%= (cart.total + standardShippingFee).toFixed(2) %></strong>
                     </li>
               </ul>
               <button id="placeOrderBtn" class="btn btn-success w-100 mt-3" disabled>
@@ -373,10 +380,12 @@
     const shippingFeeSummary = document.getElementById("shippingFeeSummary");
     const totalSummary = document.getElementById("totalSummary");
 
-    let currentShippingFee = 200; // Default to Standard shipping (PKR 200)
+    let currentShippingFee = <%= standardShippingFee %>; // Default to Standard shipping
 
     // EJS variable for cart subtotal - this will be replaced by server-side data
     const cartSubtotal = parseFloat("<%= cart.total %>");
+    const serverStandardFee = <%= standardShippingFee %>;
+    const serverExpressFee = <%= expressShippingFee %>;
 
     // Show/hide EasyPaisa section and update shipping/total
     document.querySelectorAll('input[name="payment"]').forEach((el) => {
@@ -394,10 +403,10 @@
     document.querySelectorAll('input[name="delivery"]').forEach((el) => {
       el.addEventListener("change", () => {
         if (el.value === "Standard") {
-          currentShippingFee = 200;
+          currentShippingFee = serverStandardFee;
           deliveryMethodSummary.textContent = "Standard";
         } else if (el.value === "Express") {
-          currentShippingFee = 500;
+          currentShippingFee = serverExpressFee;
           deliveryMethodSummary.textContent = "Express";
         }
         shippingFeeSummary.textContent = `PKR ${currentShippingFee}`;

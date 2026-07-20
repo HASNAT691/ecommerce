@@ -70,8 +70,7 @@
     }
 </style>
 
-<body>
-    <!-- Wrap the track-card in a container, assuming layout.ejs provides a basic Bootstrap container structure -->
+    <!-- Track order card -->
     <div class="container d-flex justify-content-center align-items-center">
         <div class="track-card">
             <h2 class="mb-4">Track Your Order</h2>
@@ -112,10 +111,6 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle (assuming it's loaded in layout.ejs, but safe to keep here too) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const trackOrderForm = document.getElementById('trackOrderForm');
@@ -198,4 +193,3 @@
             });
         });
     </script>
-</body>

@@ -44,32 +44,21 @@ img { max-width: 100%; }
 
 #whatsapp { color: #25D366; }
 
-/* ── Navbar icon sizing: preserve the height attribute on small icons ── */
-.navbar .nav-link img {
-  height: 28px !important;
-  width: auto !important;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-/* ── Navbar: vertical alignment for all nav items ── */
+/* ── Navbar: consistent alignment for all nav items ── */
 .navbar .nav-link {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 4px 6px;
+  padding: 4px 8px;
+  font-size: 1rem;
+  position: relative;
 }
 .navbar .nav-link span.d-block {
   font-size: 10px;
   line-height: 1.2;
   margin-top: 2px;
-}
-.navbar .nav-link .badge {
-  position: absolute;
-  top: 0;
-  right: 0;
 }
 
 /* ═══════════════════════════════════════════════

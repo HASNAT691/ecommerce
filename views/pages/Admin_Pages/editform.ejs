@@ -180,8 +180,8 @@
       const checked = existingSubs.includes(s) ? "checked" : "";
       subChk.insertAdjacentHTML("beforeend",
         `<div class='form-check d-inline mx-2'>
-           <input class='form-check-input' type='checkbox' name='subcategories'
-                  value='${s}' id='${uid}' ${checked}>
+           <input class='form-check-input' type='radio' name='subcategories'
+                  value='${s}' id='${uid}' ${checked} required>
            <label class='form-check-label fw-bold' for='${uid}'>${s}</label>
          </div>`);
     });

@@ -208,7 +208,7 @@
       const uid = "sub_" + s.replace(/\\s+/g, "_");
       subChk.innerHTML += `
         <div class='form-check d-inline mx-2'>
-          <input class='form-check-input' type='checkbox' name='subcategories' value='${s}' id='${uid}'>
+          <input class='form-check-input' type='radio' name='subcategories' value='${s}' id='${uid}' required>
           <label class='form-check-label fw-bold' for='${uid}'>${s}</label>
         </div>`;
     }

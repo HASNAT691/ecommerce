@@ -121,6 +121,15 @@
 </style>
 
 <body class="bg-light">
+<% 
+  var totalItems = 0;
+  if (cart && cart.items && cart.items.length > 0) {
+    cart.items.forEach(item => { totalItems += (item.quantity || 0); });
+  }
+  var additionalItemFee = totalItems > 1 ? (totalItems - 1) * 50 : 0;
+  var standardShippingFee = 200 + additionalItemFee;
+  var expressShippingFee = 500 + additionalItemFee;
+%>
   <div class="container my-5">
     <h2 class="text-center mb-4">Checkout</h2>
 
@@ -203,13 +212,6 @@
 
               <!-- Delivery Method -->
               <div class="accordion-item checkout-card">
-                <% 
-                  let totalItems = 0;
-                  cart.items.forEach(item => { totalItems += item.quantity; });
-                  let additionalItemFee = totalItems > 1 ? (totalItems - 1) * 50 : 0;
-                  let standardShippingFee = 200 + additionalItemFee;
-                  let expressShippingFee = 500 + additionalItemFee;
-                %>
                 <h2 class="accordion-header" id="headingTwo">
                   <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                     data-bs-target="#collapseTwo">
@@ -388,12 +390,12 @@
     const shippingFeeSummary = document.getElementById("shippingFeeSummary");
     const totalSummary = document.getElementById("totalSummary");
 
-    let currentShippingFee = <%= standardShippingFee %>; // Default to Standard shipping
+    let currentShippingFee = <%= typeof standardShippingFee !== 'undefined' ? standardShippingFee : 200 %>; // Default to Standard shipping
 
     // EJS variable for cart subtotal - this will be replaced by server-side data
     const cartSubtotal = parseFloat("<%= (cart && cart.total) ? cart.total : 0 %>") || 0;
-    const serverStandardFee = <%= standardShippingFee %>;
-    const serverExpressFee = <%= expressShippingFee %>;
+    const serverStandardFee = <%= typeof standardShippingFee !== 'undefined' ? standardShippingFee : 200 %>;
+    const serverExpressFee = <%= typeof expressShippingFee !== 'undefined' ? expressShippingFee : 500 %>;
 
     // Show/hide EasyPaisa section and update shipping/total
     document.querySelectorAll('input[name="payment"]').forEach((el) => {

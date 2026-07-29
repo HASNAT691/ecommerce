@@ -142,7 +142,15 @@
                 <% wishlist.items.forEach(item => { %>
                     <div class="col">
                         <div class="card h-100">
-                             <img src="<%= item.picture.startsWith('http') ? item.picture : '/' + item.picture %>" class="card-img-top" alt="<%=item.title%>">
+                             <% 
+                                let itemPic = 'https://placehold.co/150';
+                                if (typeof item.picture === 'string' && item.picture) {
+                                    itemPic = item.picture.startsWith('http') ? item.picture : (item.picture.startsWith('/') ? item.picture : '/' + item.picture);
+                                } else if (Array.isArray(item.picture) && item.picture.length > 0) {
+                                    itemPic = item.picture[0].startsWith('http') ? item.picture[0] : (item.picture[0].startsWith('/') ? item.picture[0] : '/' + item.picture[0]);
+                                }
+                             %>
+                             <img src="<%= itemPic %>" class="card-img-top" alt="<%=item.title%>">
                             <div class="card-body">
                                 <h5 class="card-title"><%=item.title%></h5>
                                 <p class="card-text">Rs. <%=item.price%></p>

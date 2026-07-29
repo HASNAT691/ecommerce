@@ -285,7 +285,15 @@
                 <% cart.items.forEach(item=> { %>
                   <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
-                      <img src="<%= item.picture[0].startsWith('http') ? item.picture[0] : '/uploads/' + item.picture[0] %>"
+                      <% 
+                        let itemImg = 'https://placehold.co/50x60/f0f0f0/333333?text=No+Img';
+                        if (Array.isArray(item.picture) && item.picture.length > 0 && item.picture[0]) {
+                          itemImg = item.picture[0].startsWith('http') ? item.picture[0] : (item.picture[0].startsWith('/') ? item.picture[0] : '/uploads/' + item.picture[0]);
+                        } else if (typeof item.picture === 'string' && item.picture.trim() !== '') {
+                          itemImg = item.picture.startsWith('http') ? item.picture : (item.picture.startsWith('/') ? item.picture : '/uploads/' + item.picture);
+                        }
+                      %>
+                      <img src="<%= itemImg %>"
                         onerror="this.onerror=null;this.src='https://placehold.co/50x60/f0f0f0/333333?text=No+Img';"
                         alt="<%= item.title %>" class="product-item-img me-2" />
                       <%= item.title %> (x<%= item.quantity %>)
@@ -296,7 +304,7 @@
 
                     <li class="list-group-item d-flex justify-content-between">
                       Subtotal
-                      <span>PKR <%= cart.total.toFixed(2) %></span>
+                      <span>PKR <%= (cart.total || 0).toFixed(2) %></span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                       Shipping (<span id="deliveryMethodSummary">Standard</span>)
@@ -304,7 +312,7 @@
                     </li>
                     <li class="list-group-item total-box d-flex justify-content-between">
                       <strong>Total</strong>
-                      <strong id="totalSummary">PKR <%= (cart.total + standardShippingFee).toFixed(2) %></strong>
+                      <strong id="totalSummary">PKR <%= ((cart.total || 0) + standardShippingFee).toFixed(2) %></strong>
                     </li>
               </ul>
               <button id="placeOrderBtn" class="btn btn-success w-100 mt-3" disabled>
@@ -383,7 +391,7 @@
     let currentShippingFee = <%= standardShippingFee %>; // Default to Standard shipping
 
     // EJS variable for cart subtotal - this will be replaced by server-side data
-    const cartSubtotal = parseFloat("<%= cart.total %>");
+    const cartSubtotal = parseFloat("<%= (cart && cart.total) ? cart.total : 0 %>") || 0;
     const serverStandardFee = <%= standardShippingFee %>;
     const serverExpressFee = <%= expressShippingFee %>;
 

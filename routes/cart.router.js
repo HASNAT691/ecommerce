@@ -352,7 +352,7 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
         price: item.price,
         // When saving to Order model, if you only want the *first* image for the order history
         // then store item.picture[0]. If you want the full array for some reason (less common for order history), store item.picture
-        picture: item.picture[0] || 'placeholder.jpg', // Store only the first image for the order item record
+        picture: (Array.isArray(item.picture) ? item.picture[0] : item.picture) || 'placeholder.jpg', // Store only the first image for the order item record
         quantity: item.quantity,
       })),
       subtotal: subtotal,

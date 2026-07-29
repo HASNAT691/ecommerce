@@ -153,7 +153,15 @@
                             <% order.items.forEach(item=> { %>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
-                                        <img src="<%= item.picture.startsWith('http') ? item.picture : '/' + item.picture %>"
+                                        <% 
+                                            let itemPic = 'https://placehold.co/40x40/f0f0f0/333333?text=No+Img';
+                                            if (typeof item.picture === 'string' && item.picture) {
+                                                itemPic = item.picture.startsWith('http') ? item.picture : (item.picture.startsWith('/') ? item.picture : '/' + item.picture);
+                                            } else if (Array.isArray(item.picture) && item.picture.length > 0) {
+                                                itemPic = item.picture[0].startsWith('http') ? item.picture[0] : (item.picture[0].startsWith('/') ? item.picture[0] : '/' + item.picture[0]);
+                                            }
+                                        %>
+                                        <img src="<%= itemPic %>"
                                             onerror="this.onerror=null;this.src='https://placehold.co/40x40/f0f0f0/333333?text=No+Img';"
                                             alt="<%= item.title %>" class="product-item-img me-2">
                                         <%= item.title %> (x<%= item.quantity %>)

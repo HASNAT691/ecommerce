@@ -57,7 +57,17 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && proce
     filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
   });
 }
-const uploadProducts = multer({ storage: storageProducts });
+const imageFileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|webp/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype.toLowerCase());
+  if (extname && mimetype) {
+    return cb(null, true);
+  } else {
+    cb(new Error("Only image files (jpg, jpeg, png, webp) are allowed!"), false);
+  }
+};
+const uploadProducts = multer({ storage: storageProducts, fileFilter: imageFileFilter });
 
 /* Multer configuration for dynamic file replacement on product edit */
 function multerAnyReplace(req, res, next) {
@@ -773,12 +783,15 @@ router.get("/admin/customers", isAdminAuthenticated, async (req, res) => {
         const limit = 10; // Customers per page
         const skip = (page - 1) * limit;
 
-        // Fetch users and their order counts
+        // Fetch users and their order counts (paginated before lookup for high performance)
         const [customers, totalCustomers] = await Promise.all([
             User.aggregate([
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit },
                 {
                     $lookup: {
-                        from: 'orders', // The collection name for Order model (usually pluralized lowercase)
+                        from: 'orders',
                         localField: '_id',
                         foreignField: 'userId',
                         as: 'orders'
@@ -786,19 +799,16 @@ router.get("/admin/customers", isAdminAuthenticated, async (req, res) => {
                 },
                 {
                     $addFields: {
-                        orderCount: { $size: '$orders' } // Count orders for each user
+                        orderCount: { $size: '$orders' }
                     }
                 },
                 {
                     $project: {
-                        password: 0, // Exclude sensitive info
-                        orders: 0 // Exclude the orders array itself to keep response lighter
+                        password: 0,
+                        orders: 0
                     }
                 }
-            ])
-            .sort({ createdAt: -1 }) // Sort by newest registered
-            .skip(skip)
-            .limit(limit),
+            ]),
             User.countDocuments()
         ]);
 
@@ -859,11 +869,11 @@ router.post("/api/track-order", async (req, res) => {
     try {
         const { readableOrderId } = req.body;
 
-        if (!readableOrderId) {
-            return res.status(400).json({ error: "Order ID is required." });
+        if (!readableOrderId || typeof readableOrderId !== 'string') {
+            return res.status(400).json({ error: "Valid Order ID is required." });
         }
 
-        const order = await Order.findOne({ readableOrderId: readableOrderId }).lean();
+        const order = await Order.findOne({ readableOrderId: readableOrderId.trim() }).lean();
 
         if (!order) {
             return res.status(404).json({ error: "No order found with that ID." });
@@ -871,16 +881,28 @@ router.post("/api/track-order", async (req, res) => {
 
         // Mask sensitive customer information for public tracking
         const maskedOrder = {
-            ...order,
+            readableOrderId: order.readableOrderId,
+            status: order.status,
+            orderDate: order.orderDate,
+            deliveryMethod: order.deliveryMethod,
+            subtotal: order.subtotal,
+            shippingCharge: order.shippingCharge,
+            total: order.total,
+            items: (order.items || []).map(item => ({
+                title: item.title,
+                price: item.price,
+                quantity: item.quantity,
+                picture: item.picture
+            })),
             shippingAddress: {
-                name: order.shippingAddress.name ? order.shippingAddress.name.replace(/^(.)(.*)(.)$/, (m, a, b, c) => a + "*".repeat(b.length) + c) : "N/A",
+                name: order.shippingAddress && order.shippingAddress.name ? order.shippingAddress.name.replace(/^(.)(.*)(.)$/, (m, a, b, c) => a + "*".repeat(b.length) + c) : "N/A",
                 addressLine1: "Masked for Privacy",
-                addressLine2: order.shippingAddress.addressLine2 ? "Masked" : "",
-                city: order.shippingAddress.city || "",
-                state: order.shippingAddress.state || "",
+                addressLine2: order.shippingAddress && order.shippingAddress.addressLine2 ? "Masked" : "",
+                city: order.shippingAddress ? order.shippingAddress.city : "",
+                state: order.shippingAddress ? order.shippingAddress.state : "",
                 zipCode: "****",
-                country: order.shippingAddress.country || "Pakistan",
-                phone: order.shippingAddress.phone ? order.shippingAddress.phone.replace(/.(?=.{4})/g, "*") : "N/A"
+                country: order.shippingAddress ? order.shippingAddress.country : "Pakistan",
+                phone: order.shippingAddress && order.shippingAddress.phone ? order.shippingAddress.phone.replace(/.(?=.{4})/g, "*") : "N/A"
             }
         };
 
@@ -892,7 +914,10 @@ router.post("/api/track-order", async (req, res) => {
     }
 });
 
-// --- EXISTING PUBLIC PRODUCT LISTING ROUTES ---
+// Helper to escape user input for safe RegExp matching
+const escapeRegex = (str) => {
+  return typeof str === 'string' ? str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
+};
 
 // GET secondpage (main product listing for users)
 router.get("/secondpage", async (req, res) => {
@@ -904,7 +929,7 @@ router.get("/secondpage", async (req, res) => {
     let categoryId = null;
     if (category && category !== "") {
       const foundCategory = await Category.findOne({
-        categoryName: { $regex: new RegExp(`^${category}$`, "i") },
+        categoryName: { $regex: new RegExp(`^${escapeRegex(category)}$`, "i") },
       });
 
       if (foundCategory) {
@@ -916,7 +941,7 @@ router.get("/secondpage", async (req, res) => {
     }
 
     if (subcategory && subcategory !== "") {
-      query.subcategories = { $regex: new RegExp(subcategory, "i") };
+      query.subcategories = { $regex: new RegExp(escapeRegex(subcategory), "i") };
     }
 
     let sortObj = {};
@@ -955,7 +980,7 @@ router.get("/api/products", async (req, res) => {
 
     if (category) {
       const categoryDoc = await Category.findOne({
-        categoryName: { $regex: new RegExp(category, "i") },
+        categoryName: { $regex: new RegExp(escapeRegex(category), "i") },
       });
 
       if (categoryDoc) {
@@ -966,7 +991,7 @@ router.get("/api/products", async (req, res) => {
     }
 
     if (subcategory) {
-      query.subcategories = { $regex: new RegExp(subcategory, "i") };
+      query.subcategories = { $regex: new RegExp(escapeRegex(subcategory), "i") };
     }
 
     let sortObj = {};

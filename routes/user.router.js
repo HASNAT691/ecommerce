@@ -15,20 +15,7 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Middleware to check if user is authenticated (using session)
-const isAuthenticated = (req, res, next) => {
-  if (req.session.userId) {
-    next(); // User is authenticated, proceed
-  } else {
-    // If it's an API request (XHR), send JSON error
-    if (req.xhr || req.headers.accept.indexOf("json") > -1) {
-      return res.status(401).json({ error: "Unauthorized: Please log in." });
-    }
-    // For page requests, store the intended URL and redirect to login
-    req.session.returnTo = req.originalUrl; // Store the URL the user was trying to access
-    res.redirect("/user/login"); // Redirect to your login page
-  }
-};
+const isAuthenticated = require("../middlewares/auth");
 
 // --- User Authentication Routes ---
 
@@ -117,18 +104,7 @@ router.post("/user/register", authLimiter, validateStringFields(["email", "passw
   }
 });
 
-// POST /logout - Log out user and destroy session (from previous Canvas)
-router.post("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Error destroying session:", err);
-      return res.status(500).json({ error: "Failed to log out." });
-    }
-    // Clear session cookie if session store doesn't handle it automatically
-    res.clearCookie("connect.sid"); // 'connect.sid' is the default name for express-session cookie
-    res.status(200).json({ message: "Logged out successfully." });
-  });
-});
+
 
 // --- User Profile & API Routes ---
 

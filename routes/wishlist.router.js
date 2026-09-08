@@ -2,60 +2,24 @@ const express = require('express');
 const router = express.Router();
 const Wishlist = require('../model/wishlist.model');
 const User = require('../model/user.model');
-
-// Enhanced authentication middleware (with redirect support for page requests)
-const isAuthenticated = async (req, res, next) => {
-    try {
-        const userId = req.session.userId;
-        if (!userId) {
-            if (req.xhr || (req.headers.accept && req.headers.accept.indexOf("json") > -1)) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Please log in to access wishlist'
-                });
-            }
-            req.session.returnTo = req.originalUrl;
-            return res.redirect("/user/login");
-        }
-
-        const user = await User.findById(userId);
-        if (!user || !user.email) {
-            delete req.session.userId;
-            if (req.xhr || (req.headers.accept && req.headers.accept.indexOf("json") > -1)) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'User not found or invalid, please login again'
-                });
-            }
-            req.session.returnTo = req.originalUrl;
-            return res.redirect("/user/login");
-        }
-
-        req.user = user;
-        next();
-    } catch (error) {
-        console.error('Authentication error:', error);
-        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf("json") > -1)) {
-            return res.status(500).json({
-                success: false,
-                message: 'Authentication error'
-            });
-        }
-        res.status(500).send('Authentication error');
-    }
-};
+const Product = require('../model/products.models');
+const isAuthenticated = require('../middlewares/auth');
 
 // View wishlist - protected route with email verification
 router.get('/wishlist', isAuthenticated, async (req, res) => {
     try {
         const userId = req.session.userId;
         const wishlist = await Wishlist.findOne({ userId });
-        const user = req.user; // User is now available from middleware
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.redirect("/user/login");
+        }
 
         res.render('pages/Main_Site_pages/wishlist', { 
             wishlist: wishlist || { items: [] },
             layout: false,
-            user: user,
+            user: user.toObject(),
             userEmail: user.email // Pass email to view
         });
     } catch (error) {
@@ -67,18 +31,31 @@ router.get('/wishlist', isAuthenticated, async (req, res) => {
 // Add to wishlist - protected route
 router.post('/add-to-wishlist', isAuthenticated, async (req, res) => {
     try {
-        const { productId, price, title, picture } = req.body;
+        const { productId } = req.body;
+        if (!productId) {
+            return res.status(400).json({ success: false, message: 'Product ID is required' });
+        }
+
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
         const userId = req.session.userId;
-        const userEmail = req.user.email; // Get email from authenticated user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const userEmail = user.email;
 
         // Find existing wishlist or create new one
         let wishlist = await Wishlist.findOne({ userId });
         
         if (!wishlist) {
-            // Create new wishlist with required fields
             wishlist = new Wishlist({
                 userId,
-                userEmail, // Add user email here
+                userEmail,
                 items: []
             });
         }
@@ -86,12 +63,12 @@ router.post('/add-to-wishlist', isAuthenticated, async (req, res) => {
         // Check if item already exists
         const existingItem = wishlist.items.find(item => item.productId === productId);
         if (!existingItem) {
-            // Add new item
+            const itemPic = (product.images && product.images.length > 0) ? product.images[0] : (req.body.picture || '');
             wishlist.items.push({
                 productId,
-                title,
-                price: Number(price),
-                picture
+                title: product.title,
+                price: Number(product.price),
+                picture: itemPic
             });
             
             try {

@@ -54,23 +54,19 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && proce
         },
     });
 }
-const upload = multer({ storage: storage });
-
-// --- Middleware for Authentication ---
-const isAuthenticated = (req, res, next) => {
-  if (req.session.userId) {
-    next(); // User is authenticated, proceed
+const imageFileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|webp/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype.toLowerCase());
+  if (extname && mimetype) {
+    return cb(null, true);
   } else {
-    // If it's an API request (XHR), send JSON error
-    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-      return res.status(401).json({ error: 'Unauthorized: Please log in.' });
-    }
-    // For page requests, store the intended URL and redirect to login
-    req.session.returnTo = req.originalUrl; // Store the URL the user was trying to access
-    res.redirect('/user/login'); // Redirect to your login page
+    cb(new Error("Only image files (jpg, jpeg, png, webp) are allowed!"), false);
   }
 };
-// --- End Middleware ---
+const upload = multer({ storage: storage, fileFilter: imageFileFilter });
+
+const isAuthenticated = require("../middlewares/auth");
 
 
 // Add to cart
@@ -288,12 +284,30 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
 
     const userId = req.session.userId;
 
-    // Optional: Re-verify stock for all items right before final checkout
+    // Atomically deduct stock for all items right before final checkout
+    const deductedItems = [];
+    let stockErrorItem = null;
+
     for (const cartItem of cart.items) {
-        const product = await Product.findById(cartItem.productId);
-        if (!product || product.inStock < cartItem.quantity) {
-            return res.status(400).json({ error: `Stock for "${cartItem.title}" is insufficient. Available: ${product ? product.inStock : 0}` });
+        const updatedProduct = await Product.findOneAndUpdate(
+            { _id: cartItem.productId, inStock: { $gte: cartItem.quantity } },
+            { $inc: { inStock: -cartItem.quantity } },
+            { new: true }
+        );
+
+        if (!updatedProduct) {
+            stockErrorItem = cartItem.title;
+            break;
         }
+        deductedItems.push(cartItem);
+    }
+
+    if (stockErrorItem) {
+        // Roll back already-deducted items for this batch
+        for (const item of deductedItems) {
+            await Product.findByIdAndUpdate(item.productId, { $inc: { inStock: item.quantity } });
+        }
+        return res.status(400).json({ error: `Stock for "${stockErrorItem}" is insufficient or unavailable.` });
     }
 
     // Extract data from request body and uploaded file
@@ -376,14 +390,6 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
     });
 
     await order.save();
-
-    // Update product stock in DB
-    for (const cartItem of cart.items) {
-        await Product.findByIdAndUpdate(
-            cartItem.productId,
-            { $inc: { inStock: -cartItem.quantity } } // Decrement stock
-        );
-    }
 
     // Clear cart after successful order
     req.session.cart = {

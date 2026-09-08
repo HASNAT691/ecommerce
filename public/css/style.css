@@ -207,7 +207,7 @@ img { max-width: 100%; }
 /* ═══════════════════════════════════════════════
    ADMIN SIDEBAR
 ═══════════════════════════════════════════════ */
-.sidebar {
+.admin-sidebar {
   position: fixed;
   top: 0; left: 0;
   height: 100vh;
@@ -217,16 +217,16 @@ img { max-width: 100%; }
   z-index: 100;
   transition: width 0.3s ease;
 }
-.sidebar .nav-link {
+.admin-sidebar .nav-link {
   color: #adb5bd;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
 }
-.sidebar .nav-link:hover { color: #fff; background-color: #495057; }
-.sidebar .nav-link i { margin-right: 10px; }
-.sidebar .nav-link span { display: inline; }
+.admin-sidebar .nav-link:hover { color: #fff; background-color: #495057; }
+.admin-sidebar .nav-link i { margin-right: 10px; }
+.admin-sidebar .nav-link span { display: inline; }
 .submenu .nav-link { padding-left: 2.5rem; font-size: 0.9rem; }
 .content { margin-left: 220px; padding: 20px; }
 
@@ -240,10 +240,10 @@ img { max-width: 100%; }
 
   /* Admin content push */
   .content { margin-left: 80px; }
-  .sidebar { width: 65px; }
-  .sidebar .nav-link span { display: none !important; }
-  .sidebar .nav-link i { margin-right: 0; font-size: 1.2rem; }
-  .sidebar .nav-link { text-align: center; padding: 12px 0; }
+  .admin-sidebar { width: 65px; }
+  .admin-sidebar .nav-link span { display: none !important; }
+  .admin-sidebar .nav-link i { margin-right: 0; font-size: 1.2rem; }
+  .admin-sidebar .nav-link { text-align: center; padding: 12px 0; }
   .submenu .nav-link { padding-left: 0; text-align: center; }
 }
 
@@ -305,10 +305,10 @@ img { max-width: 100%; }
   .product-detail-img { max-height: 60vw; object-fit: contain; }
 
   /* ── Admin sidebar: minimal strip ── */
-  .sidebar { width: 55px; }
-  .sidebar .nav-link span { display: none !important; }
-  .sidebar .nav-link i { margin-right: 0; font-size: 1.1rem; }
-  .sidebar .nav-link { text-align: center; padding: 10px 0; }
+  .admin-sidebar { width: 55px; }
+  .admin-sidebar .nav-link span { display: none !important; }
+  .admin-sidebar .nav-link i { margin-right: 0; font-size: 1.1rem; }
+  .admin-sidebar .nav-link { text-align: center; padding: 10px 0; }
   .submenu .nav-link { padding-left: 0; text-align: center; font-size: 0.8rem; }
   .content { margin-left: 65px !important; padding: 10px; }
 

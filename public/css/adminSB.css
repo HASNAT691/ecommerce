@@ -1,4 +1,4 @@
-.sidebar {
+.admin-sidebar {
   position: fixed;
   top: 0;
   left: 0;
@@ -9,7 +9,7 @@
   z-index: 100;
 }
 
-.sidebar .nav-link {
+.admin-sidebar .nav-link {
   color: #adb5bd;
   white-space: nowrap;
   overflow: hidden;
@@ -17,16 +17,16 @@
   cursor: pointer;
 }
 
-.sidebar .nav-link:hover {
+.admin-sidebar .nav-link:hover {
   color: #fff;
   background-color: #495057;
 }
 
-.sidebar .nav-link i {
+.admin-sidebar .nav-link i {
   margin-right: 10px;
 }
 
-.sidebar .nav-link span {
+.admin-sidebar .nav-link span {
   display: inline; /* Always show label */
 }
 
@@ -40,17 +40,17 @@
 }
 
 @media (max-width: 768px) {
-  .sidebar {
+  .admin-sidebar {
     width: 60px;
   }
-  .sidebar .nav-link span {
+  .admin-sidebar .nav-link span {
     display: none !important;
   }
-  .sidebar .nav-link i {
+  .admin-sidebar .nav-link i {
     margin-right: 0;
     font-size: 1.2rem;
   }
-  .sidebar .nav-link {
+  .admin-sidebar .nav-link {
     text-align: center;
     padding: 10px 0;
   }

@@ -122,7 +122,7 @@
                                     <td>
                                         <%= order.shippingAddress.name %>
                                     </td>
-                                    <td>PKR <%= order.total.toFixed(2) %>
+                                    <td>PKR <%= (order.total || 0).toFixed(2) %>
                                     </td>
                                     <td><span class="order-status-badge status-<%= order.status %>">
                                             <%= order.status %>

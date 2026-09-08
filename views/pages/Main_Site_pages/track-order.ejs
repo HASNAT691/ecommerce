@@ -152,32 +152,31 @@
                         document.getElementById('orderDate').textContent = new Date(order.orderDate).toLocaleDateString('en-PK', {
                             year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         });
-                        document.getElementById('orderTotal').textContent = `PKR ${order.total.toFixed(2)}`;
+                        document.getElementById('orderTotal').textContent = `PKR ${(order.total || 0).toFixed(2)}`;
 
                         const shippingAddressDiv = document.getElementById('shippingAddressDisplay');
+                        const addr = order.shippingAddress || {};
                         shippingAddressDiv.innerHTML = `
-                                <p>${order.shippingAddress.name}</p>
-                                <p>${order.shippingAddress.addressLine1}${order.shippingAddress.addressLine2 ? ', ' + order.shippingAddress.addressLine2 : ''}</p>
-                                <p>${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zipCode}</p>
-                                <p>${order.shippingAddress.country}</p>
-                                <p>Phone: ${order.shippingAddress.phone}</p>
+                                <p>${addr.name || 'Customer'}</p>
+                                <p>${addr.addressLine1 || 'N/A'}${addr.addressLine2 ? ', ' + addr.addressLine2 : ''}</p>
+                                <p>${addr.city || ''}, ${addr.state || ''} ${addr.zipCode || ''}</p>
+                                <p>${addr.country || 'Pakistan'}</p>
+                                <p>Phone: ${addr.phone || 'N/A'}</p>
                             `;
 
                         const orderItemsList = document.getElementById('orderItemsList');
                         orderItemsList.innerHTML = ''; // Clear previous items
-                        order.items.forEach(item => {
+                        (order.items || []).forEach(item => {
                             const listItem = document.createElement('li');
                             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-                            // Ensure item.picture is a string for direct use in src
-                            // Corrected image path: /uploads/ prefix added
                             const imgSrc = Array.isArray(item.picture) ? item.picture[0] : item.picture;
-                            const imgPath = (imgSrc && imgSrc.startsWith('http')) ? imgSrc : `/uploads/${imgSrc}`;
+                            const imgPath = (imgSrc && imgSrc.startsWith('http')) ? imgSrc : (imgSrc ? `/uploads/${imgSrc}` : 'https://placehold.co/40x40/f0f0f0/333333?text=No+Img');
                             listItem.innerHTML = `
                                     <div class="d-flex align-items-center">
                                         <img src="${imgPath}" onerror="this.onerror=null;this.src='https://placehold.co/40x40/f0f0f0/333333?text=No+Img';" alt="${item.title}" class="product-item-img me-2">
                                         ${item.title} (x${item.quantity})
                                     </div>
-                                    <span>PKR ${(item.price * item.quantity).toFixed(2)}</span>
+                                    <span>PKR ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
                                 `;
                             orderItemsList.appendChild(listItem);
                         });

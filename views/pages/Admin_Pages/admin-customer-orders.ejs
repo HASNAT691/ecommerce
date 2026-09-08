@@ -133,8 +133,8 @@
                             <%= new Date(order.orderDate).toLocaleDateString('en-PK', { year: 'numeric' , month: 'long'
                                 , day: 'numeric' , hour: '2-digit' , minute: '2-digit' }) %>
                         </p>
-                        <p><strong>Total:</strong> PKR <%= order.total.toFixed(2) %> (Subtotal: PKR <%=
-                                    order.subtotal.toFixed(2) %> + Shipping: PKR <%= order.shippingCharge.toFixed(2) %>)
+                        <p><strong>Total:</strong> PKR <%= (order.total || 0).toFixed(2) %> (Subtotal: PKR <%=
+                                    (order.subtotal || 0).toFixed(2) %> + Shipping: PKR <%= (order.shippingCharge || 0).toFixed(2) %>)
                         </p>
                         <h6>Shipping Address:</h6>
                         <p class="mb-2">

@@ -138,14 +138,27 @@
                   <!-- Bootstrap carousel – unique id per item -->
                   <div id="car-<%= idx %>" class="carousel slide h-100" data-bs-touch="false">
                     <div class="carousel-inner h-100">
-                      <% if (Array.isArray(item.picture)) { item.picture.forEach((img, i)=> { %>
+                      <% 
+                        let pictures = [];
+                        if (Array.isArray(item.picture)) {
+                          pictures = item.picture;
+                        } else if (typeof item.picture === 'string' && item.picture) {
+                          pictures = [item.picture];
+                        }
+                        if (pictures.length === 0) {
+                          pictures = ['https://placehold.co/150x200?text=No+Img'];
+                        }
+                      %>
+                      <% pictures.forEach((img, i)=> { %>
                         <div class="carousel-item h-100 <%= i === 0 ? 'active' : '' %>">
-                          <img src="<%= img.startsWith('http') ? img : '/uploads/' + img %>" class="d-block w-100 product-img" alt="image" />
+                          <img src="<%= img.startsWith('http') ? img : (img.startsWith('/') ? img : '/uploads/' + img) %>" 
+                            onerror="this.onerror=null;this.src='https://placehold.co/150x200?text=No+Img';" 
+                            class="d-block w-100 product-img" alt="image" />
                         </div>
-                        <% }) } %>
+                        <% }) %>
                     </div>
 
-                    <% if (Array.isArray(item.picture) && item.picture.length> 1) { %>
+                    <% if (pictures.length > 1) { %>
                       <button class="carousel-control-prev" type="button" data-bs-target="#car-<%= idx %>"
                         data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>

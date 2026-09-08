@@ -131,7 +131,7 @@
                         <%= p.category ? p.category.categoryName : 'N/A' %>
                     </td>
                     <td class="text-end">
-                        <%= p.price.toLocaleString() %>
+                        <%= (p.price || 0).toLocaleString() %>
                     </td>
                     <td class="text-center">
                         <%= p.isFeatured ? '★' : '' %>

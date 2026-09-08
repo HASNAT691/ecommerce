@@ -14,11 +14,11 @@
                     </div>
                     <div class="dashboard-stats">
                         <div class="stat-item">
-                            <div class="stat-value">PKR <%= stats.totalRevenue.toLocaleString() %></div>
+                             <div class="stat-value">PKR <%= (stats.totalRevenue || 0).toLocaleString() %></div>
                             <div class="stat-label">Total Revenue</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value"><%= products.length %></div>
+                            <div class="stat-value"><%= (products || []).length %></div>
                             <div class="stat-label">Products</div>
                         </div>
                     </div>
@@ -33,11 +33,11 @@
                     </div>
                     <div class="dashboard-stats">
                         <div class="stat-item">
-                            <div class="stat-value"><%= stats.totalOrders %></div>
+                            <div class="stat-value"><%= stats.totalOrders || 0 %></div>
                             <div class="stat-label">Total Orders</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value"><%= stats.completedPercentage %>%</div>
+                            <div class="stat-value"><%= stats.completedPercentage || 0 %>%</div>
                             <div class="stat-label">Completed</div>
                         </div>
                     </div>
@@ -86,11 +86,11 @@
                         <% if (orders && orders.length > 0) { %>
                             <% orders.forEach(order => { %>
                                 <tr>
-                                    <td>#<%= order._id ? order._id.toString().slice(-6) : 'N/A' %></td>
+                                    <td>#<%= order.readableOrderId || (order._id ? order._id.toString().slice(-6) : 'N/A') %></td>
                                     <td><%= order.shippingAddress ? order.shippingAddress.name : 'Customer' %></td>
-                                    <td>PKR <%= order.subtotal.toLocaleString() %></td>
+                                    <td>PKR <%= (order.subtotal || 0).toLocaleString() %></td>
                                     <td>PKR <%= (order.shippingCharge || 190).toLocaleString() %></td>
-                                    <td>PKR <%= order.total.toLocaleString() %></td>
+                                    <td>PKR <%= (order.total || 0).toLocaleString() %></td>
                                     <td><%= order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A' %></td>
                                     <td>
                                         <span class="badge bg-<%= order.status === 'Completed' ? 'success' : 

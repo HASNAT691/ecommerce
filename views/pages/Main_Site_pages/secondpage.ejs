@@ -257,11 +257,18 @@
 
       <div class="row row-cols-2 row-cols-md-3 g-3 g-md-4">
         <% if (products.length===0) { %>
-          <div class="col-12 ">
-            <div class="no-products">
-              <i class="bi bi-search"></i>
+          <div class="col-12">
+            <div class="no-products text-center py-5">
+              <i class="fa-solid fa-magnifying-glass fs-1 text-muted mb-3"></i>
               <h3>No Products Found</h3>
-              <p>Try adjusting your filters or browse our other categories</p>
+              <% if (locals.search) { %>
+                <p class="text-muted">No items matched your search for <strong>"<%= search %>"</strong>.</p>
+                <div class="mt-3">
+                  <a href="/secondpage" class="btn btn-dark px-4">View All Products</a>
+                </div>
+              <% } else { %>
+                <p class="text-muted">Try adjusting your filters or browse our main categories.</p>
+              <% } %>
             </div>
           </div>
           <% } else { %>

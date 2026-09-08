@@ -927,15 +927,26 @@ router.get("/secondpage", async (req, res) => {
     let conditions = [];
 
     if (search && search.trim() !== "") {
-      const searchRegex = new RegExp(escapeRegex(search.trim()), "i");
-      conditions.push({
-        $or: [
-          { name: searchRegex },
-          { title: searchRegex },
-          { description: searchRegex },
-          { subcategories: searchRegex }
-        ]
-      });
+      const searchTerm = search.trim();
+      const searchRegex = new RegExp(escapeRegex(searchTerm), "i");
+
+      // Find any Category documents whose categoryName matches searchRegex
+      const matchingCategories = await Category.find({
+        categoryName: searchRegex,
+      }).select("_id");
+      const matchingCategoryIds = matchingCategories.map((c) => c._id);
+
+      const searchOr = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { subcategories: searchRegex },
+      ];
+
+      if (matchingCategoryIds.length > 0) {
+        searchOr.push({ category: { $in: matchingCategoryIds } });
+      }
+
+      conditions.push({ $or: searchOr });
     }
 
     if (category && category !== "") {

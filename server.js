@@ -89,8 +89,16 @@ app.use(wishlistRouter); // Assuming these have their own prefixes or specific r
 app.use(userRouter); // Contains /user/login, /profile etc.
 app.use(productsRouter); // Contains /admin/* routes and /secondpage
 
-app.get("/", (req, res) => {
-  res.render("pages/Main_Site_pages/landingPage");
+const Product = require("./model/product.model");
+
+app.get("/", async (req, res) => {
+  try {
+    const featuredProducts = await Product.find().sort({ createdAt: -1 }).limit(8);
+    res.render("pages/Main_Site_pages/landingPage", { featuredProducts });
+  } catch (err) {
+    console.error("Error fetching landing page products:", err);
+    res.render("pages/Main_Site_pages/landingPage", { featuredProducts: [] });
+  }
 });
 
 // 404 Page Not Found Handler

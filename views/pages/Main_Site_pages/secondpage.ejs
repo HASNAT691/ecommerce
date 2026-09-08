@@ -219,10 +219,22 @@
 
     <!-- Main content -->
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <% if (locals.search) { %>
+        <div class="alert alert-light border shadow-sm d-flex justify-content-between align-items-center mt-3 mb-3">
+          <div>
+            <i class="bi bi-search text-muted me-2"></i>
+            Search results for: <strong class="text-dark">"<%= search %>"</strong>
+            <span class="badge bg-dark ms-2"><%= products.length %> <%= products.length === 1 ? 'product' : 'products' %></span>
+          </div>
+          <a href="/secondpage" class="btn btn-sm btn-outline-dark">Clear Search</a>
+        </div>
+      <% } %>
       <div
         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">
-          <% if (locals.category) { %>
+          <% if (locals.search) { %>
+            Search Results
+          <% } else if (locals.category) { %>
             <%= category %>
               <% if (locals.subcategory) { %>
                 - <%= subcategory %>

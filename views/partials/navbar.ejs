@@ -100,14 +100,10 @@
       <div>
         <ul class="navbar-nav d-flex flex-row gap-2 align-items-center">
           <li class="nav-item">
-            <a class="nav-link" href="#" id="navbarSearchIcon">
+            <a class="nav-link" href="#" id="navbarSearchIcon" role="button" aria-label="Toggle search">
               <i class="fa-solid fa-magnifying-glass"></i>
               <span class="d-block">Search</span>
             </a>
-          </li>
-          <li class="nav-item position-relative" id="navbarSearchContainer">
-            <input type="text" id="navbarSearchInput" class="form-control position-absolute top-100 start-0 mt-2 d-none"
-              placeholder="Search..." style="z-index: 999; width: 200px" />
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/admin/login">
@@ -150,6 +146,28 @@
       </div>
     </div>
   </nav>
+
+  <!-- Sleek Top Search Bar Overlay -->
+  <div id="siteSearchOverlay" class="bg-white border-bottom shadow-sm py-3 px-3 px-md-5 d-none position-absolute top-100 start-0 w-100" style="z-index: 1050; transition: all 0.3s ease;">
+    <div class="container-fluid">
+      <form action="/secondpage" method="GET" class="d-flex align-items-center gap-2">
+        <div class="input-group input-group-lg">
+          <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted fs-5"></i></span>
+          <input type="text" name="search" id="siteSearchInput" class="form-control bg-light border-start-0 shadow-none fs-6" placeholder="Search Lawn, Stitched Suits, Unstitched, Kids Collection..." value="<%= typeof search !== 'undefined' ? search : '' %>" />
+          <button class="btn btn-dark px-4 fs-6" type="submit">Search</button>
+        </div>
+        <button type="button" class="btn-close ms-2 fs-5" id="closeSearchBtn" aria-label="Close search"></button>
+      </form>
+      <div class="d-flex gap-2 align-items-center mt-2 small text-muted flex-wrap">
+        <span class="fw-bold text-dark">Popular:</span>
+        <a href="/secondpage?search=Summer+Lawn" class="badge bg-light text-dark border text-decoration-none">Summer Lawn</a>
+        <a href="/secondpage?search=Stitched" class="badge bg-light text-dark border text-decoration-none">Stitched</a>
+        <a href="/secondpage?search=Ready-to-Wear" class="badge bg-light text-dark border text-decoration-none">Ready to Wear</a>
+        <a href="/secondpage?search=Unstitched" class="badge bg-light text-dark border text-decoration-none">Unstitched</a>
+        <a href="/secondpage?search=Kids" class="badge bg-light text-dark border text-decoration-none">Kids</a>
+      </div>
+    </div>
+  </div>
 </header>
 
 <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar">
@@ -159,15 +177,14 @@
   </div>
   <div class="offcanvas-body d-flex flex-column justify-content-between">
     <ul class="navbar-nav">
-      <li class="nav-item border-top">
-        <a class="nav-link py-2 text-secondary" href="#" id="offcanvasSearchIcon">
-          <i class="fa-solid fa-magnifying-glass me-2"></i>Search
-        </a>
+      <li class="nav-item border-top p-2">
+        <form action="/secondpage" method="GET" class="d-flex gap-1">
+          <input type="text" name="search" class="form-control form-control-sm" placeholder="Search products..." value="<%= typeof search !== 'undefined' ? search : '' %>" />
+          <button class="btn btn-dark btn-sm px-3" type="submit">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </form>
       </li>
-      <div class="position-relative px-3" id="offcanvasSearchContainer">
-        <input type="text" id="offcanvasSearchInput" class="form-control mt-2 d-none" placeholder="Search..."
-          style="width: 90%" />
-      </div>
       <li class="nav-item border-top">
         <a class="nav-link py-2 text-secondary mnl" href="/profile">
           <i class="fa-regular fa-user me-2"></i>Account
@@ -247,6 +264,34 @@
           e.stopPropagation();
           goTo(this.getAttribute('href'));
         });
+      });
+
+      // Search Overlay Toggle
+      const searchIcon = document.getElementById('navbarSearchIcon');
+      const searchOverlay = document.getElementById('siteSearchOverlay');
+      const searchInput = document.getElementById('siteSearchInput');
+      const closeSearchBtn = document.getElementById('closeSearchBtn');
+
+      if (searchIcon && searchOverlay) {
+        searchIcon.addEventListener('click', function (e) {
+          e.preventDefault();
+          searchOverlay.classList.toggle('d-none');
+          if (!searchOverlay.classList.contains('d-none')) {
+            setTimeout(() => { searchInput && searchInput.focus(); }, 100);
+          }
+        });
+      }
+
+      if (closeSearchBtn && searchOverlay) {
+        closeSearchBtn.addEventListener('click', function () {
+          searchOverlay.classList.add('d-none');
+        });
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && searchOverlay && !searchOverlay.classList.contains('d-none')) {
+          searchOverlay.classList.add('d-none');
+        }
       });
     });
   })();

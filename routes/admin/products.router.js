@@ -922,27 +922,39 @@ const escapeRegex = (str) => {
 // GET secondpage (main product listing for users)
 router.get("/secondpage", async (req, res) => {
   try {
-    const { category, subcategory, sort } = req.query;
+    const { category, subcategory, search, sort } = req.query;
 
-    let query = {};
+    let conditions = [];
 
-    let categoryId = null;
+    if (search && search.trim() !== "") {
+      const searchRegex = new RegExp(escapeRegex(search.trim()), "i");
+      conditions.push({
+        $or: [
+          { name: searchRegex },
+          { title: searchRegex },
+          { description: searchRegex },
+          { subcategories: searchRegex }
+        ]
+      });
+    }
+
     if (category && category !== "") {
       const foundCategory = await Category.findOne({
         categoryName: { $regex: new RegExp(`^${escapeRegex(category)}$`, "i") },
       });
 
       if (foundCategory) {
-        categoryId = foundCategory._id;
-        query.category = categoryId;
+        conditions.push({ category: foundCategory._id });
       } else {
-        query.category = null; // No matching category, effectively returns no products
+        conditions.push({ category: null });
       }
     }
 
     if (subcategory && subcategory !== "") {
-      query.subcategories = { $regex: new RegExp(escapeRegex(subcategory), "i") };
+      conditions.push({ subcategories: { $regex: new RegExp(escapeRegex(subcategory), "i") } });
     }
+
+    let query = conditions.length > 0 ? { $and: conditions } : {};
 
     let sortObj = {};
     switch (sort) {
@@ -964,6 +976,7 @@ router.get("/secondpage", async (req, res) => {
       products,
       category: category || "",
       subcategory: subcategory || "",
+      search: search ? search.trim() : "",
       sort: sort || "newest",
     });
   } catch (error) {

@@ -213,17 +213,34 @@
               let totalItems = 0;
               cart.items.forEach(item => { totalItems += item.quantity; });
               let additionalItemFee = totalItems > 1 ? (totalItems - 1) * 50 : 0;
-              let shippingFee = 200 + additionalItemFee;
+              let isFreeShipping = cart.total >= 5000;
+              let shippingFee = isFreeShipping ? 0 : (190 + additionalItemFee);
             %>
             <div class="d-flex justify-content-between mb-3">
-              <span>Subtotal</span><strong>PKR <%= cart.total %></strong>
+              <span>Subtotal</span><strong>PKR <%= cart.total.toLocaleString() %></strong>
             </div>
             <div class="d-flex justify-content-between mb-3">
-              <span>Shipping</span><span>PKR <%= shippingFee %></span>
+              <span>Shipping</span>
+              <span>
+                <% if (isFreeShipping) { %>
+                  <span class="badge bg-success text-white px-2 py-1">FREE</span>
+                <% } else { %>
+                  PKR <%= shippingFee.toLocaleString() %>
+                <% } %>
+              </span>
             </div>
+            <% if (!isFreeShipping) { %>
+              <div class="alert alert-light border small py-2 px-3 mb-3 text-center">
+                <i class="fas fa-truck-fast me-1 text-dark"></i> Add <strong>PKR <%= (5000 - cart.total).toLocaleString() %></strong> more for <strong>FREE Delivery</strong>!
+              </div>
+            <% } else { %>
+              <div class="alert alert-success small py-2 px-3 mb-3 text-center">
+                <i class="fas fa-check-circle me-1"></i> You unlocked <strong>FREE Nationwide Delivery</strong>!
+              </div>
+            <% } %>
             <hr />
             <div class="d-flex justify-content-between mb-4">
-              <span>Total</span><strong>PKR <%= cart.total + shippingFee %></strong>
+              <span>Total</span><strong>PKR <%= (cart.total + shippingFee).toLocaleString() %></strong>
             </div>
 
             <a href="/checkout" class="btn checkout-btn w-100">

@@ -60,7 +60,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // This is crucial for images to be accessible in the browser
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // <-- UPDATED: Explicit '/uploads' prefix and path.join for robustness
 
-// Initialize cart in session if it doesn't exist (should be after session middleware)
+// Initialize cart and expose global variables to all EJS templates
 app.use((req, res, next) => {
   if (!req.session.cart) {
     req.session.cart = {
@@ -68,6 +68,12 @@ app.use((req, res, next) => {
       total: 0,
     };
   }
+  const cartItems = req.session.cart.items || [];
+  res.locals.cart = req.session.cart;
+  res.locals.cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  res.locals.isAuthenticated = !!req.session.userId;
+  res.locals.isAdmin = !!req.session.isAdmin;
+  res.locals.currentPath = req.path;
   next();
 });
 
@@ -120,6 +126,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(5000, () => {
-  console.log("Server started at location : 5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server started on port: ${PORT}`);
 });

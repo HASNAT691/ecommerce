@@ -127,7 +127,8 @@
     cart.items.forEach(item => { totalItems += (item.quantity || 0); });
   }
   var additionalItemFee = totalItems > 1 ? (totalItems - 1) * 50 : 0;
-  var standardShippingFee = 200 + additionalItemFee;
+  var isFreeShipping = (cart && cart.total >= 5000);
+  var standardShippingFee = isFreeShipping ? 0 : (190 + additionalItemFee);
   var expressShippingFee = 500 + additionalItemFee;
 %>
   <div class="container my-5">
@@ -224,7 +225,7 @@
                       <div class="form-check mb-2">
                         <input class="form-check-input" type="radio" name="delivery" id="deliveryStandard"
                           value="Standard" required checked />
-                        <label class="form-check-label" for="deliveryStandard">Standard (PKR <%= standardShippingFee %>, 3-5 days)</label>
+                        <label class="form-check-label" for="deliveryStandard">Standard (<%= isFreeShipping ? 'FREE' : 'PKR ' + standardShippingFee %>, 3-5 days)</label>
                       </div>
                       <div class="form-check">
                         <input class="form-check-input" type="radio" name="delivery" id="deliveryExpress"
@@ -310,7 +311,7 @@
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                       Shipping (<span id="deliveryMethodSummary">Standard</span>)
-                      <span id="shippingFeeSummary">PKR <%= standardShippingFee %></span>
+                      <span id="shippingFeeSummary"><%= isFreeShipping ? 'FREE' : 'PKR ' + standardShippingFee %></span>
                     </li>
                     <li class="list-group-item total-box d-flex justify-content-between">
                       <strong>Total</strong>
@@ -334,7 +335,12 @@
         <div class="modal-body">
           <i class="fas fa-check-circle fa-5x text-success mb-3 animate__animated animate__bounceIn"></i>
           <h4>Order Placed Successfully!</h4>
-          <p>Thank you for your purchase. Your order has been confirmed.</p>
+          <p class="text-muted mb-2">Thank you for your purchase. Your order has been placed.</p>
+          <div class="alert alert-light border p-2 my-3">
+            <span class="small text-muted d-block mb-1">Your Order Tracking ID:</span>
+            <strong id="confirmedOrderId" class="fs-5 font-monospace text-dark d-block"></strong>
+          </div>
+          <p class="small text-muted mb-0">Please save this Tracking ID to track your order status.</p>
         </div>
       </div>
     </div>
@@ -390,11 +396,11 @@
     const shippingFeeSummary = document.getElementById("shippingFeeSummary");
     const totalSummary = document.getElementById("totalSummary");
 
-    let currentShippingFee = <%= typeof standardShippingFee !== 'undefined' ? standardShippingFee : 200 %>; // Default to Standard shipping
+    let currentShippingFee = <%= typeof standardShippingFee !== 'undefined' ? standardShippingFee : 0 %>; // Default to Standard shipping
 
     // EJS variable for cart subtotal - this will be replaced by server-side data
     const cartSubtotal = parseFloat("<%= (cart && cart.total) ? cart.total : 0 %>") || 0;
-    const serverStandardFee = <%= typeof standardShippingFee !== 'undefined' ? standardShippingFee : 200 %>;
+    const serverStandardFee = <%= typeof standardShippingFee !== 'undefined' ? standardShippingFee : 0 %>;
     const serverExpressFee = <%= typeof expressShippingFee !== 'undefined' ? expressShippingFee : 500 %>;
 
     // Show/hide EasyPaisa section and update shipping/total
@@ -419,7 +425,7 @@
           currentShippingFee = serverExpressFee;
           deliveryMethodSummary.textContent = "Express";
         }
-        shippingFeeSummary.textContent = `PKR ${currentShippingFee}`;
+        shippingFeeSummary.textContent = currentShippingFee === 0 ? "FREE" : `PKR ${currentShippingFee}`;
         updateOrderTotal();
         validateForms();
       });
@@ -515,14 +521,18 @@
         const data = await response.json(); // Assuming JSON response from backend
 
         if (response.ok) {
+          if (data.readableOrderId) {
+            const confirmedEl = document.getElementById("confirmedOrderId");
+            if (confirmedEl) confirmedEl.textContent = data.readableOrderId;
+          }
           const orderConfirmedModal = new bootstrap.Modal(
             document.getElementById("orderConfirmedModal")
           );
           orderConfirmedModal.show();
 
           setTimeout(() => {
-            window.location.href = "/secondpage";
-          }, 3000);
+            window.location.href = "/track-order";
+          }, 4500);
         } else {
           showAlert(
             data.error || "Failed to place order. Please try again.",

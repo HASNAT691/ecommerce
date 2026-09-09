@@ -118,12 +118,6 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/admin/login">
-              <i class="fa-solid fa-user-shield"></i>
-              <span class="d-block">Admin</span>
-            </a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="/profile">
               <i class="fa-regular fa-user"></i>
               <span class="d-block">Account</span>
@@ -150,7 +144,7 @@
           <li class="nav-item position-relative">
             <a class="nav-link" href="/cart">
               <i class="fa-solid fa-bag-shopping" style="font-size: 1.2rem;"></i>
-              <span class="badge bg-danger rounded-pill position-absolute top-0 end-0" id="cartCount" style="font-size: 0.6rem;">0</span>
+              <span class="badge bg-danger rounded-pill position-absolute top-0 end-0" id="cartCount" style="font-size: 0.6rem;"><%= typeof cartCount !== 'undefined' ? cartCount : 0 %></span>
               <span class="d-block">Cart</span>
             </a>
           </li>
@@ -221,11 +215,6 @@
         <a class="nav-link py-2 text-secondary mnl" href="/about-us">ℹ️ About-Us</a>
       </li>
       <li class="nav-item border-top">
-        <a class="nav-link py-2 text-secondary mnl" href="/admin/login">
-          <i class="fa-solid fa-user-shield me-2"></i>Admin
-        </a>
-      </li>
-      <li class="nav-item border-top">
         <a class="nav-link py-2 text-secondary mnl" href="/track-order">
           <i class="fa-solid fa-truck-fast me-2"></i>Track
         </a>
@@ -243,7 +232,7 @@
       <li class="nav-item border-top">
         <a class="nav-link py-2 text-secondary mnl" href="/cart">
           <img src="/images/shopping_icon.png" height="20" class="me-2" />Cart
-          <span class="badge bg-danger rounded-pill ms-2" id="mobileCartCount">0</span>
+          <span class="badge bg-danger rounded-pill ms-2" id="mobileCartCount"><%= typeof cartCount !== 'undefined' ? cartCount : 0 %></span>
         </a>
       </li>
     </ul>

@@ -275,6 +275,7 @@ router.get("/checkout", isAuthenticated, async (req, res) => {
 // POST /checkout - Processes the order
 // Use upload.single('screenshot') for the file upload if EasyPaisa is selected
 router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screenshot'), async (req, res) => {
+  const deductedItems = [];
   try {
     const cart = req.session.cart;
 
@@ -285,7 +286,6 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
     const userId = req.session.userId;
 
     // Atomically deduct stock for all items right before final checkout
-    const deductedItems = [];
     let stockErrorItem = null;
 
     for (const cartItem of cart.items) {
@@ -323,7 +323,12 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
     
     let shippingCharge = 0;
     if (deliveryMethod === 'Standard') {
-      shippingCharge = 200 + additionalItemFee;
+      // Free nationwide delivery on standard orders PKR 5,000 and above
+      if (cart.total >= 5000) {
+        shippingCharge = 0;
+      } else {
+        shippingCharge = 190 + additionalItemFee;
+      }
     } else if (deliveryMethod === 'Express') {
       shippingCharge = 500 + additionalItemFee;
     }
@@ -402,6 +407,16 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
 
   } catch (error) {
     console.error("Checkout Error:", error);
+    // Roll back already-deducted inventory items if order creation fails
+    if (deductedItems && deductedItems.length > 0) {
+      for (const item of deductedItems) {
+        try {
+          await Product.findByIdAndUpdate(item.productId, { $inc: { inStock: item.quantity } });
+        } catch (rollbackErr) {
+          console.error("Stock rollback error for item:", item.productId, rollbackErr);
+        }
+      }
+    }
     // If an error occurs after file upload, delete the uploaded file (local only)
     if (req.file && req.file.path && !req.file.path.startsWith('http')) {
         fs.unlink(req.file.path, (err) => {

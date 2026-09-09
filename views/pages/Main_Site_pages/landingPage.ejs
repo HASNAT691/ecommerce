@@ -3,77 +3,65 @@
      AL REHAN SHOPPING CENTER - LUXURY LANDING PAGE
   ═══════════════════════════════════════════════ */
 
-  /* Luxury Top Announcement Bar */
+  /* Luxury Top Announcement Bar (Monochrome Luxury) */
   .luxury-announcement-bar {
-    background: radial-gradient(circle at 50% 50%, #1a202c 0%, #0d1117 100%);
-    border-bottom: 1px solid rgba(212, 175, 55, 0.4);
-    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: #000000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     padding: 0.55rem 1rem;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
-  .luxury-announcement-bar .gold-pill {
-    background: linear-gradient(135deg, #fce084 0%, #d4af37 50%, #aa7c11 100%);
-    color: #111827;
-    font-size: 0.7rem;
+  .luxury-announcement-bar .brand-badge {
+    background: #ffffff;
+    color: #000000;
+    font-size: 0.68rem;
     font-weight: 800;
-    letter-spacing: 1.2px;
+    letter-spacing: 1.5px;
     padding: 0.22rem 0.65rem;
-    border-radius: 50px;
+    border-radius: 0;
     text-transform: uppercase;
-    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.35);
   }
 
   .luxury-announcement-bar .brand-title {
     color: #ffffff;
     font-weight: 700;
     font-size: 0.85rem;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     text-transform: uppercase;
   }
 
   .luxury-announcement-bar .text-divider {
-    color: #d4af37;
-    opacity: 0.8;
+    color: rgba(255, 255, 255, 0.35);
     font-size: 0.75rem;
-    margin: 0 0.35rem;
+    margin: 0 0.4rem;
   }
 
   .luxury-announcement-bar .fabrics-subtext {
-    color: #cbd5e1;
+    color: rgba(255, 255, 255, 0.75);
     font-size: 0.82rem;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
     font-weight: 400;
   }
 
-  .luxury-announcement-bar .delivery-highlight {
-    background: rgba(212, 175, 55, 0.12);
-    border: 1px solid rgba(212, 175, 55, 0.4);
-    border-radius: 50px;
-    padding: 0.25rem 0.85rem;
-    color: #fde047;
+  .luxury-announcement-bar .delivery-highlight-bw {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.22rem 0.85rem;
+    color: #ffffff;
     font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.3px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     transition: all 0.3s ease;
   }
 
-  .luxury-announcement-bar .delivery-highlight:hover {
-    background: rgba(212, 175, 55, 0.22);
-    border-color: rgba(212, 175, 55, 0.75);
+  .luxury-announcement-bar .delivery-highlight-bw:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: #ffffff;
     transform: translateY(-1px);
-  }
-
-  .pulse-truck {
-    animation: gentlePulse 2.5s infinite ease-in-out;
-  }
-
-  @keyframes gentlePulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.18); }
   }
 
   @media (max-width: 576px) {
@@ -82,9 +70,9 @@
     }
     .luxury-announcement-bar .brand-title {
       font-size: 0.78rem;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
     }
-    .luxury-announcement-bar .delivery-highlight {
+    .luxury-announcement-bar .delivery-highlight-bw {
       font-size: 0.75rem;
       padding: 0.2rem 0.6rem;
     }
@@ -239,12 +227,68 @@
     transform: scale(1.05);
   }
 
-  /* Flagship Showroom Banner */
+  /* Flagship Showroom Banner (Luxury Dark Aesthetic) */
   .showroom-banner {
-    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    background: linear-gradient(135deg, #090d16 0%, #151b28 50%, #090d16 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: #fff;
-    border-radius: 20px;
-    padding: 4rem 2rem;
+    border-radius: 16px;
+    padding: 4.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .showroom-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .showroom-btn-primary {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 0.9rem 2.4rem;
+    border: 1px solid #ffffff;
+    border-radius: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .showroom-btn-primary:hover {
+    background-color: transparent !important;
+    color: #ffffff !important;
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.25);
+  }
+
+  .showroom-btn-secondary {
+    background-color: transparent !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+    padding: 0.9rem 2.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 0;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .showroom-btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: #ffffff;
+    color: #ffffff !important;
+    transform: translateY(-2px);
   }
 
   @media (max-width: 768px) {
@@ -262,17 +306,17 @@
 </style>
 
 <main class="bg-light">
-  <!-- Top Luxury Announcement Bar -->
+  <!-- Top Luxury Announcement Bar (Monochrome Luxury) -->
   <div class="luxury-announcement-bar">
     <div class="container d-flex flex-wrap align-items-center justify-content-center gap-2 text-center">
-      <span class="gold-pill"><i class="fas fa-crown me-1"></i> Original</span>
+      <span class="brand-badge"><i class="fas fa-crown me-1"></i> Original</span>
       <span class="brand-title">AL REHAN SHOPPING CENTER</span>
-      <span class="text-divider d-none d-md-inline">✦</span>
+      <span class="text-divider d-none d-md-inline">•</span>
       <span class="fabrics-subtext d-none d-sm-inline">100% Original Lawn &amp; Designer Fabrics</span>
-      <span class="text-divider d-none d-md-inline">✦</span>
-      <div class="delivery-highlight">
-        <i class="fas fa-truck-fast text-warning pulse-truck"></i>
-        <span>Free Nationwide Delivery Above <strong class="text-white text-decoration-underline" style="text-underline-offset: 2px;">PKR 5,000</strong></span>
+      <span class="text-divider d-none d-md-inline">•</span>
+      <div class="delivery-highlight-bw">
+        <i class="fas fa-truck-fast text-white"></i>
+        <span>Free Nationwide Delivery Above <strong class="text-white text-decoration-underline" style="text-underline-offset: 3px;">PKR 5,000</strong></span>
       </div>
     </div>
   </div>
@@ -473,14 +517,14 @@
   <section class="py-5">
     <div class="container">
       <div class="showroom-banner text-center position-relative shadow-lg">
-        <span class="text-uppercase tracking-widest text-warning small fw-bold">Heritage & Craftsmanship</span>
-        <h2 class="display-5 fw-bold mt-2 mb-3">AL REHAN SHOPPING CENTER</h2>
-        <p class="lead text-white-50 mx-auto mb-4" style="max-width: 750px;">
+        <span class="text-uppercase tracking-widest text-white-50 small fw-semibold d-inline-block mb-2" style="letter-spacing: 3.5px; font-size: 0.78rem;">Heritage &amp; Craftsmanship</span>
+        <h2 class="display-5 fw-bold mb-3 text-white" style="letter-spacing: 2px;">AL REHAN SHOPPING CENTER</h2>
+        <p class="lead text-white-50 mx-auto mb-4" style="max-width: 720px; font-size: 1.05rem; line-height: 1.7;">
           Welcome to Al Rehan Shopping Center — your premier fashion destination for 100% authentic unstitched lawn, luxury stitched suits, and kids festive collections. Visit our flagship showroom in DG Khan or order online with complete confidence.
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
-          <a href="/secondpage" class="btn btn-warning btn-lg px-4 py-2 text-dark font-monospace rounded-0 fw-bold">Browse All Products</a>
-          <a href="https://wa.me/923457139939?text=Hi%2C%20I%20want%20to%20inquire%20about%20your%20latest%20collection" target="_blank" class="btn btn-outline-light btn-lg px-4 py-2 rounded-0">
+          <a href="/secondpage" class="showroom-btn-primary">Browse All Products</a>
+          <a href="https://wa.me/923457139939?text=Hi%2C%20I%20want%20to%20inquire%20about%20your%20latest%20collection" target="_blank" class="showroom-btn-secondary">
             <i class="fab fa-whatsapp me-2"></i>Inquire on WhatsApp
           </a>
         </div>

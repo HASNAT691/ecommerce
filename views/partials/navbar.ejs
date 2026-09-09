@@ -99,7 +99,19 @@
       </div>
       <div>
         <ul class="navbar-nav d-flex flex-row gap-2 align-items-center">
-          <li class="nav-item">
+          <!-- Visible Header Search Bar (Desktop) -->
+          <li class="nav-item d-none d-md-block me-1">
+            <form action="/secondpage" method="GET" class="d-flex align-items-center" id="headerSearchForm">
+              <div class="input-group input-group-sm" style="width: 210px;">
+                <input type="text" name="search" class="form-control rounded-start-pill ps-3" placeholder="Search products..." value="<%= typeof search !== 'undefined' ? search : '' %>" required />
+                <button class="btn btn-dark rounded-end-pill px-3" type="submit" aria-label="Search">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+              </div>
+            </form>
+          </li>
+          <!-- Mobile Search Toggle Icon -->
+          <li class="nav-item d-md-none">
             <a class="nav-link" href="#" id="navbarSearchIcon" role="button" aria-label="Toggle search">
               <i class="fa-solid fa-magnifying-glass"></i>
               <span class="d-block">Search</span>

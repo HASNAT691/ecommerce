@@ -37,38 +37,25 @@ document.addEventListener('DOMContentLoaded', function() {
     updateActiveDot();
 
 
-    // search icon behaviour
+    // Search Overlay behavior
     const navbarSearchIcon = document.getElementById("navbarSearchIcon");
-    const navbarSearchInput = document.getElementById("navbarSearchInput");
+    const siteSearchOverlay = document.getElementById("siteSearchOverlay");
+    const siteSearchInput = document.getElementById("siteSearchInput");
+    const closeSearchBtn = document.getElementById("closeSearchBtn");
 
-    const offcanvasSearchIcon = document.getElementById("offcanvasSearchIcon");
-    const offcanvasSearchInput = document.getElementById("offcanvasSearchInput");
-
-    if (navbarSearchIcon && navbarSearchInput) {
-        // Toggle Navbar Search Field
+    if (navbarSearchIcon && siteSearchOverlay) {
         navbarSearchIcon.addEventListener("click", function (e) {
             e.preventDefault();
-            navbarSearchInput.classList.toggle("d-none");
-            navbarSearchInput.focus();
-        });
-
-        // Hide when focus is lost
-        navbarSearchInput.addEventListener("blur", function () {
-            navbarSearchInput.classList.add("d-none");
+            siteSearchOverlay.classList.toggle("d-none");
+            if (!siteSearchOverlay.classList.contains("d-none") && siteSearchInput) {
+                setTimeout(() => { siteSearchInput.focus(); }, 100);
+            }
         });
     }
 
-    if (offcanvasSearchIcon && offcanvasSearchInput) {
-        // Toggle Offcanvas Search Field
-        offcanvasSearchIcon.addEventListener("click", function (e) {
-            e.preventDefault();
-            offcanvasSearchInput.classList.toggle("d-none");
-            offcanvasSearchInput.focus();
-        });
-
-        // Hide when focus is lost
-        offcanvasSearchInput.addEventListener("blur", function () {
-            offcanvasSearchInput.classList.add("d-none");
+    if (closeSearchBtn && siteSearchOverlay) {
+        closeSearchBtn.addEventListener("click", function () {
+            siteSearchOverlay.classList.add("d-none");
         });
     }
 });

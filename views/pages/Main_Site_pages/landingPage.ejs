@@ -3,6 +3,93 @@
      AL REHAN SHOPPING CENTER - LUXURY LANDING PAGE
   ═══════════════════════════════════════════════ */
 
+  /* Luxury Top Announcement Bar */
+  .luxury-announcement-bar {
+    background: radial-gradient(circle at 50% 50%, #1a202c 0%, #0d1117 100%);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 0.55rem 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .luxury-announcement-bar .gold-pill {
+    background: linear-gradient(135deg, #fce084 0%, #d4af37 50%, #aa7c11 100%);
+    color: #111827;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    padding: 0.22rem 0.65rem;
+    border-radius: 50px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.35);
+  }
+
+  .luxury-announcement-bar .brand-title {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .luxury-announcement-bar .text-divider {
+    color: #d4af37;
+    opacity: 0.8;
+    font-size: 0.75rem;
+    margin: 0 0.35rem;
+  }
+
+  .luxury-announcement-bar .fabrics-subtext {
+    color: #cbd5e1;
+    font-size: 0.82rem;
+    letter-spacing: 0.4px;
+    font-weight: 400;
+  }
+
+  .luxury-announcement-bar .delivery-highlight {
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 50px;
+    padding: 0.25rem 0.85rem;
+    color: #fde047;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.3s ease;
+  }
+
+  .luxury-announcement-bar .delivery-highlight:hover {
+    background: rgba(212, 175, 55, 0.22);
+    border-color: rgba(212, 175, 55, 0.75);
+    transform: translateY(-1px);
+  }
+
+  .pulse-truck {
+    animation: gentlePulse 2.5s infinite ease-in-out;
+  }
+
+  @keyframes gentlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.18); }
+  }
+
+  @media (max-width: 576px) {
+    .luxury-announcement-bar {
+      padding: 0.45rem 0.75rem;
+    }
+    .luxury-announcement-bar .brand-title {
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+    }
+    .luxury-announcement-bar .delivery-highlight {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+    }
+  }
+
   /* Hero Banner Carousel: Full Widescreen Display (No Cropping) */
   .hero-carousel {
     background-color: #f8f9fa;
@@ -175,9 +262,19 @@
 </style>
 
 <main class="bg-light">
-  <!-- Top Announcement Bar -->
-  <div class="bg-dark text-white text-center py-2 px-3 small font-monospace tracking-wide">
-    <i class="fas fa-gem text-warning me-2"></i>AL REHAN SHOPPING CENTER — 100% Original Lawn & Designer Fabrics | Free Nationwide Delivery Above PKR 5,000
+  <!-- Top Luxury Announcement Bar -->
+  <div class="luxury-announcement-bar">
+    <div class="container d-flex flex-wrap align-items-center justify-content-center gap-2 text-center">
+      <span class="gold-pill"><i class="fas fa-crown me-1"></i> Original</span>
+      <span class="brand-title">AL REHAN SHOPPING CENTER</span>
+      <span class="text-divider d-none d-md-inline">✦</span>
+      <span class="fabrics-subtext d-none d-sm-inline">100% Original Lawn &amp; Designer Fabrics</span>
+      <span class="text-divider d-none d-md-inline">✦</span>
+      <div class="delivery-highlight">
+        <i class="fas fa-truck-fast text-warning pulse-truck"></i>
+        <span>Free Nationwide Delivery Above <strong class="text-white text-decoration-underline" style="text-underline-offset: 2px;">PKR 5,000</strong></span>
+      </div>
+    </div>
   </div>
 
   <!-- Full-Picture Widescreen Hero Carousel -->

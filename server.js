@@ -89,7 +89,7 @@ app.use(wishlistRouter); // Assuming these have their own prefixes or specific r
 app.use(userRouter); // Contains /user/login, /profile etc.
 app.use(productsRouter); // Contains /admin/* routes and /secondpage
 
-const Product = require("./model/product.model");
+const Product = require("./model/products.models");
 
 app.get("/", async (req, res) => {
   try {

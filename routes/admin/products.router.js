@@ -950,8 +950,15 @@ router.get("/secondpage", async (req, res) => {
     }
 
     if (category && category !== "") {
+      let catPattern = `^${escapeRegex(category)}$`;
+      if (/^un-?stitched$/i.test(category)) {
+        catPattern = "^un-?stitched$";
+      } else if (/^ready[ -]?to[ -]?wear$/i.test(category)) {
+        catPattern = "^ready[ -]?to[ -]?wear$";
+      }
+
       const foundCategory = await Category.findOne({
-        categoryName: { $regex: new RegExp(`^${escapeRegex(category)}$`, "i") },
+        categoryName: { $regex: new RegExp(catPattern, "i") },
       });
 
       if (foundCategory) {
@@ -1003,8 +1010,15 @@ router.get("/api/products", async (req, res) => {
     let query = {};
 
     if (category) {
+      let catPattern = `^${escapeRegex(category)}$`;
+      if (/^un-?stitched$/i.test(category)) {
+        catPattern = "^un-?stitched$";
+      } else if (/^ready[ -]?to[ -]?wear$/i.test(category)) {
+        catPattern = "^ready[ -]?to[ -]?wear$";
+      }
+
       const categoryDoc = await Category.findOne({
-        categoryName: { $regex: new RegExp(escapeRegex(category), "i") },
+        categoryName: { $regex: new RegExp(catPattern, "i") },
       });
 
       if (categoryDoc) {

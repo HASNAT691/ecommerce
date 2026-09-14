@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs"); // Added bcrypt for password hashing/comparison
 const rateLimit = require("express-rate-limit");
 const { validateStringFields } = require("../middlewares/validation.middleware");
@@ -307,6 +308,11 @@ router.delete("/api/addresses/:id", isAuthenticated, async (req, res) => {
 router.get("/api/orders/:id", isAuthenticated, async (req, res) => {
   try {
     const orderId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+
     const order = await Order.findById(orderId);
 
     if (!order) {
@@ -326,6 +332,17 @@ router.get("/api/orders/:id", isAuthenticated, async (req, res) => {
     console.error("Error fetching order details:", error);
     res.status(500).json({ error: "Failed to fetch order details." });
   }
+});
+
+// GET /logout and /user/logout - Direct browser link logout support
+router.get(["/logout", "/user/logout"], (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error destroying session on GET logout:", err);
+    }
+    res.clearCookie("connect.sid");
+    res.redirect("/user/login");
+  });
 });
 
 // POST /logout - Log out user and destroy session (consolidated logout route)

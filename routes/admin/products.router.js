@@ -130,11 +130,13 @@ router.get("/admin/dashboard", isAdminAuthenticated, async (req, res) => {
       };
     });
 
-    const totalRevenue = orders.reduce( // Calculate total revenue from fetched orders
-      (sum, order) => sum + (order.total || 0),
-      0
-    );
+    const revenueAgg = await Order.aggregate([
+      { $match: { status: { $ne: "Cancelled" } } },
+      { $group: { _id: null, total: { $sum: "$total" } } }
+    ]);
+    const totalRevenue = revenueAgg[0]?.total || 0;
 
+    const totalCustomers = await User.countDocuments();
     const completedOrdersCount = await Order.countDocuments({ status: "Delivered" }); // Use "Delivered" as final state
     const completedPercentage =
       totalOrders > 0 ? Math.round((completedOrdersCount / totalOrders) * 100) : 0;
@@ -155,6 +157,7 @@ router.get("/admin/dashboard", isAdminAuthenticated, async (req, res) => {
         totalRevenue,
         totalOrders,
         completedPercentage,
+        totalCustomers,
       },
     });
   } catch (error) {
@@ -588,11 +591,14 @@ router.get("/admin/categories/delete/:id", isAdminAuthenticated, async (req, res
 
 router.get("/admin/categories/edit/:id", isAdminAuthenticated, async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).send("Category not found");
+    }
     let category = await Category.findById(req.params.id);
     if (!category) {
       return res.status(404).send("Category not found");
     }
-    res.render("pages/Admin_Pages/edit-category", { // Assuming your EJS file is edit-category.ejs
+    res.render("pages/Admin_Pages/editCategory", {
       layout: "admin-layout.ejs",
       category,
     });
@@ -867,13 +873,22 @@ router.get("/track-order", (req, res) => {
 // API to track order by readable ID
 router.post("/api/track-order", async (req, res) => {
     try {
-        const { readableOrderId } = req.body;
+        const rawId = readableOrderId.trim();
+        const cleanId = rawId.replace(/^#/, "").trim();
 
-        if (!readableOrderId || typeof readableOrderId !== 'string') {
+        if (!cleanId) {
             return res.status(400).json({ error: "Valid Order ID is required." });
         }
 
-        const order = await Order.findOne({ readableOrderId: readableOrderId.trim() }).lean();
+        const queryConditions = [
+            { readableOrderId: new RegExp(`^${escapeRegex(cleanId)}$`, "i") }
+        ];
+
+        if (mongoose.Types.ObjectId.isValid(cleanId)) {
+            queryConditions.push({ _id: new mongoose.Types.ObjectId(cleanId) });
+        }
+
+        const order = await Order.findOne({ $or: queryConditions }).lean();
 
         if (!order) {
             return res.status(404).json({ error: "No order found with that ID." });
@@ -1063,11 +1078,23 @@ router.get("/product/:id", async (req, res) => {
     try {
         const productId = req.params.id;
 
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(404).render("pages/Main_Site_pages/error", {
+                title: "Product Not Found",
+                message: "The requested product does not exist or has been removed.",
+                layout: "layout.ejs"
+            });
+        }
+
         // Fetch the main product
         const product = await Product.findById(productId).lean();
 
         if (!product) {
-            return res.status(404).send("Product not found.");
+            return res.status(404).render("pages/Main_Site_pages/error", {
+                title: "Product Not Found",
+                message: "The requested product does not exist or has been removed.",
+                layout: "layout.ejs"
+            });
         }
 
         // Fetch similar products (e.g., from the same category, excluding the current product)
@@ -1086,8 +1113,27 @@ router.get("/product/:id", async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching product details:", error);
-        res.status(500).send("Error loading product details. Please try again.");
+        res.status(500).render("pages/Main_Site_pages/error", {
+            title: "Error Loading Product",
+            message: "An unexpected error occurred while loading this product. Please try again.",
+            layout: "layout.ejs"
+        });
     }
+});
+
+// Admin logout route
+router.get("/admin/logout", (req, res) => {
+  if (req.session) {
+    req.session.isAdmin = false;
+    if (!req.session.userId) {
+      req.session.destroy(() => {
+        res.clearCookie("connect.sid");
+        res.redirect("/admin/login");
+      });
+      return;
+    }
+  }
+  res.redirect("/admin/login");
 });
 
 module.exports = router;

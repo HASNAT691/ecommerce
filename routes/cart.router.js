@@ -121,9 +121,14 @@ router.post("/add-to-cart", async (req, res) => {
       0
     );
 
+    const cartCount = req.session.cart.items.reduce(
+      (sum, item) => sum + (item.quantity || 1),
+      0
+    );
+
     res.json({
       success: true,
-      cartCount: req.session.cart.items.length,
+      cartCount: cartCount,
       cart: req.session.cart,
     });
   } catch (error) {
@@ -184,9 +189,14 @@ router.post("/remove-from-cart", async (req, res) => {
       0
     );
 
+    const cartCount = cart.items.reduce(
+      (sum, item) => sum + (item.quantity || 1),
+      0
+    );
+
     res.json({
       success: true,
-      cartCount: cart.items.length,
+      cartCount: cartCount,
       cart: cart,
     });
   } catch (error) {

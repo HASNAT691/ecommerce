@@ -85,10 +85,11 @@
                   title="Edit">
                   <i class="fa fa-pen"></i>
                 </a>
-                <a href="/admin/categories/delete/<%= categories[i]._id %>" class="btn btn-outline-danger btn-sm"
-                  title="Delete">
-                  <i class="fa fa-trash"></i>
-                </a>
+                <form action="/admin/categories/delete/<%= categories[i]._id %>" method="POST" class="d-inline" onsubmit="return confirm('Delete this category? This will fail if products are still assigned to it.');">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </form>
               </td>
             </tr>
             <% } %>

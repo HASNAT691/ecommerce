@@ -299,6 +299,34 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
 
     const userId = req.session.userId;
 
+    // Extract and validate shipping details before modifying inventory
+    const {
+      name, addressLine1, addressLine2, city, state, zipCode, country, phone,
+      deliveryMethod, paymentMethod
+    } = req.body;
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: "Full Name is required." });
+    }
+    if (!phone || typeof phone !== 'string' || !phone.trim()) {
+      return res.status(400).json({ error: "Phone number is required." });
+    }
+    if (!addressLine1 || typeof addressLine1 !== 'string' || !addressLine1.trim()) {
+      return res.status(400).json({ error: "Address line 1 is required." });
+    }
+    if (!city || typeof city !== 'string' || !city.trim()) {
+      return res.status(400).json({ error: "City is required." });
+    }
+    if (!deliveryMethod || !['Standard', 'Express'].includes(deliveryMethod)) {
+      return res.status(400).json({ error: "Please select a valid delivery method." });
+    }
+    if (!paymentMethod || !['COD', 'EasyPaisa'].includes(paymentMethod)) {
+      return res.status(400).json({ error: "Please select a valid payment method." });
+    }
+    if (paymentMethod === 'EasyPaisa' && !req.file) {
+      return res.status(400).json({ error: "Payment screenshot is required for EasyPaisa." });
+    }
+
     // Atomically deduct stock for all items right before final checkout
     let stockErrorItem = null;
 
@@ -324,12 +352,6 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
         return res.status(400).json({ error: `Stock for "${stockErrorItem}" is insufficient or unavailable.` });
     }
 
-    // Extract data from request body and uploaded file
-    const {
-      name, addressLine1, addressLine2, city, state, zipCode, country, phone,
-      deliveryMethod, paymentMethod
-    } = req.body;
-
     // Determine shipping charge
     let totalItems = 0;
     cart.items.forEach(item => { totalItems += item.quantity; });
@@ -349,15 +371,7 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
 
     const subtotal = cart.total;
     const totalWithShipping = subtotal + shippingCharge;
-    let paymentScreenshotPath = null;
-
-    if (paymentMethod === 'EasyPaisa') {
-        if (!req.file) {
-            // This should ideally be caught by frontend validation, but good to have a backend fallback
-            return res.status(400).json({ error: "Payment screenshot is required for EasyPaisa." });
-        }
-        paymentScreenshotPath = req.file.path; // Store path from multer
-    }
+    let paymentScreenshotPath = req.file ? req.file.path : null;
 
     // Generate a readable Order ID
     // Simple random alphanumeric string for demonstration.

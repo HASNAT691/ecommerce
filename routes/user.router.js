@@ -160,7 +160,33 @@ router.put("/api/profile/update", isAuthenticated, async (req, res) => {
 // API: POST /api/addresses/add - Add a new address
 router.post("/api/addresses/add", isAuthenticated, async (req, res) => {
   try {
-    const newAddress = req.body;
+    const { name, phone, addressLine1, addressLine2, city, state, zipCode, country, isDefault } = req.body;
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: "Contact Name is required." });
+    }
+    if (!phone || typeof phone !== 'string' || !phone.trim()) {
+      return res.status(400).json({ error: "Phone number is required." });
+    }
+    if (!addressLine1 || typeof addressLine1 !== 'string' || !addressLine1.trim()) {
+      return res.status(400).json({ error: "Address Line 1 is required." });
+    }
+    if (!city || typeof city !== 'string' || !city.trim()) {
+      return res.status(400).json({ error: "City is required." });
+    }
+
+    const sanitizedAddress = {
+      name: name.trim(),
+      phone: phone.trim(),
+      addressLine1: addressLine1.trim(),
+      addressLine2: addressLine2 ? addressLine2.trim() : "",
+      city: city.trim(),
+      state: state ? state.trim() : "",
+      zipCode: zipCode ? zipCode.trim() : "",
+      country: country ? country.trim() : "Pakistan",
+      isDefault: !!isDefault,
+    };
+
     const user = await User.findById(req.session.userId);
 
     if (!user) {
@@ -168,13 +194,13 @@ router.post("/api/addresses/add", isAuthenticated, async (req, res) => {
     }
 
     // Handle default address logic: if new address is default, set all others to non-default
-    if (newAddress.isDefault) {
+    if (sanitizedAddress.isDefault) {
       user.addresses.forEach((addr) => {
         addr.isDefault = false;
       });
     }
 
-    user.addresses.push(newAddress);
+    user.addresses.push(sanitizedAddress);
     await user.save();
 
     res.status(201).json({
@@ -191,7 +217,21 @@ router.post("/api/addresses/add", isAuthenticated, async (req, res) => {
 router.put("/api/addresses/:id", isAuthenticated, async (req, res) => {
   try {
     const addressId = req.params.id;
-    const updatedAddressData = req.body;
+    const { name, phone, addressLine1, addressLine2, city, state, zipCode, country, isDefault } = req.body;
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: "Contact Name is required." });
+    }
+    if (!phone || typeof phone !== 'string' || !phone.trim()) {
+      return res.status(400).json({ error: "Phone number is required." });
+    }
+    if (!addressLine1 || typeof addressLine1 !== 'string' || !addressLine1.trim()) {
+      return res.status(400).json({ error: "Address Line 1 is required." });
+    }
+    if (!city || typeof city !== 'string' || !city.trim()) {
+      return res.status(400).json({ error: "City is required." });
+    }
+
     const user = await User.findById(req.session.userId);
 
     if (!user) {
@@ -207,7 +247,7 @@ router.put("/api/addresses/:id", isAuthenticated, async (req, res) => {
     }
 
     // Handle default address logic: if this address is set default, clear others
-    if (updatedAddressData.isDefault) {
+    if (isDefault) {
       user.addresses.forEach((addr) => {
         if (addr._id.toString() !== addressId) {
           addr.isDefault = false;
@@ -216,12 +256,17 @@ router.put("/api/addresses/:id", isAuthenticated, async (req, res) => {
     }
 
     // Update the specific address
-    // Use .toObject() to ensure it's a plain JS object before spreading,
-    // preserving the existing _id of the subdocument
-    user.addresses[addressIndex] = {
-      ...user.addresses[addressIndex].toObject(),
-      ...updatedAddressData,
-    };
+    user.addresses[addressIndex].name = name.trim();
+    user.addresses[addressIndex].phone = phone.trim();
+    user.addresses[addressIndex].addressLine1 = addressLine1.trim();
+    user.addresses[addressIndex].addressLine2 = addressLine2 ? addressLine2.trim() : "";
+    user.addresses[addressIndex].city = city.trim();
+    user.addresses[addressIndex].state = state ? state.trim() : "";
+    user.addresses[addressIndex].zipCode = zipCode ? zipCode.trim() : "";
+    user.addresses[addressIndex].country = country ? country.trim() : "Pakistan";
+    if (isDefault !== undefined) {
+      user.addresses[addressIndex].isDefault = !!isDefault;
+    }
 
     await user.save();
     res.status(200).json({ message: "Address updated successfully!" });

@@ -531,7 +531,7 @@ router.post("/admin/products/edit/:id", isAdminAuthenticated, multerAnyReplace, 
 });
 
 /* DELETE product */
-router.get("/admin/products/delete/:id", isAdminAuthenticated, async (req, res) => {
+const deleteProductHandler = async (req, res) => {
   try {
     const pid = req.params.id;
     const product = mongoose.Types.ObjectId.isValid(pid)
@@ -557,7 +557,9 @@ router.get("/admin/products/delete/:id", isAdminAuthenticated, async (req, res) 
     console.error("Error deleting product:", err);
     res.status(500).send("Error deleting product: " + err.message);
   }
-});
+};
+router.post("/admin/products/delete/:id", isAdminAuthenticated, deleteProductHandler);
+router.get("/admin/products/delete/:id", isAdminAuthenticated, deleteProductHandler);
 
 // --- ADMIN CATEGORIES MANAGEMENT ---
 
@@ -591,15 +593,30 @@ router.post("/admin/categories/create", isAdminAuthenticated, async (req, res) =
   }
 });
 
-router.get("/admin/categories/delete/:id", isAdminAuthenticated, async (req, res) => {
+const deleteCategoryHandler = async (req, res) => {
   try {
-    await Category.findByIdAndDelete(req.params.id);
+    const categoryId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).send("Invalid category ID");
+    }
+
+    // Prevent orphan products
+    const productCount = await Product.countDocuments({ category: categoryId });
+    if (productCount > 0) {
+      return res.status(400).send(
+        `Cannot delete category. There are ${productCount} product(s) assigned to this category. Please reassign or delete those products first.`
+      );
+    }
+
+    await Category.findByIdAndDelete(categoryId);
     return res.redirect("/admin/categories");
   } catch (error) {
     console.error("Error deleting category:", error);
     res.status(500).send("Error deleting category: " + error.message);
   }
-});
+};
+router.post("/admin/categories/delete/:id", isAdminAuthenticated, deleteCategoryHandler);
+router.get("/admin/categories/delete/:id", isAdminAuthenticated, deleteCategoryHandler);
 
 router.get("/admin/categories/edit/:id", isAdminAuthenticated, async (req, res) => {
   try {
@@ -652,7 +669,7 @@ router.post("/admin/categories/edit/:id", isAdminAuthenticated, async (req, res)
 // --- ADMIN AUTHENTICATION (Login/Register) ---
 
 router.get("/admin/login", (req, res) => {
-  res.render("pages/Admin_Pages/admin-login", { layout: false });
+  res.render("pages/Admin_Pages/admin-login", { layout: false, error: null });
 });
 
 // Rate limiting for admin authentication
@@ -669,17 +686,17 @@ router.post("/admin/login", adminAuthLimiter, validateStringFields(["username", 
   try {
     const admin = await Admin.findOne({ username });
     if (!admin) {
-      return res.status(400).send("Invalid username or password!");
+      return res.status(400).render("pages/Admin_Pages/admin-login", { layout: false, error: "Invalid username or password!" });
     }
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
-      return res.status(400).send("Invalid username or password!");
+      return res.status(400).render("pages/Admin_Pages/admin-login", { layout: false, error: "Invalid username or password!" });
     }
     req.session.isAdmin = true; // Set session variable for admin
     res.redirect("/admin/dashboard");
   } catch (error) {
     console.error("Admin Login Error:", error);
-    res.status(500).send("Error logging in admin!");
+    res.status(500).render("pages/Admin_Pages/admin-login", { layout: false, error: "An error occurred. Please try again." });
   }
 });
 

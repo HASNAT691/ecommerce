@@ -148,13 +148,14 @@
 
                     <!-- actions -->
                     <td>
-                        <a href="/admin/products/edit/<%= p._id %>" class="btn btn-sm btn-primary me-1">
+                        <a href="/admin/products/edit/<%= p._id %>" class="btn btn-sm btn-primary me-1" title="Edit">
                             <i class="fas fa-pen"></i>
                         </a>
-                        <a href="/admin/products/delete/<%= p._id %>" class="btn btn-sm btn-danger"
-                            onclick="return confirm('Delete this product?')">
-                            <i class="fas fa-trash"></i>
-                        </a>
+                        <form action="/admin/products/delete/<%= p._id %>" method="POST" class="d-inline" onsubmit="return confirm('Delete this product?');">
+                            <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 <% }) %>

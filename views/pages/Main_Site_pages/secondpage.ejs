@@ -296,10 +296,10 @@
                     </h5>
                     <p class="card-text">Rs. <%= product.price %>
                     </p>
-                    <div class="d-flex justify-content-between">
-                      <a href="/product/<%= product._id %>" class="btn btn-primary">View Details</a>
-                      <button class="btn btn-outline-primary" onclick="addToCart('<%= product._id %>')">
-                        Add to Cart
+                    <div class="d-flex justify-content-between gap-2">
+                      <a href="/product/<%= product._id %>" class="btn btn-dark flex-grow-1">View Details</a>
+                      <button class="btn btn-outline-dark" onclick="addToCart('<%= product._id %>')" title="Add to Cart">
+                        <i class="fas fa-shopping-bag"></i>
                       </button>
                     </div>
                   </div>
@@ -308,6 +308,43 @@
               <% }); %>
                 <% } %>
       </div>
+
+      <% if (locals.totalPages && totalPages > 1) { %>
+        <%
+          function getPageUrl(p) {
+            let params = [];
+            if (locals.search) params.push('search=' + encodeURIComponent(search));
+            if (locals.category) params.push('category=' + encodeURIComponent(category));
+            if (locals.subcategory) params.push('subcategory=' + encodeURIComponent(subcategory));
+            if (locals.sort && locals.sort !== 'newest') params.push('sort=' + encodeURIComponent(sort));
+            params.push('page=' + p);
+            return '/secondpage?' + params.join('&');
+          }
+        %>
+        <nav aria-label="Product pagination" class="my-5">
+          <ul class="pagination justify-content-center">
+            <li class="page-item <%= currentPage <= 1 ? 'disabled' : '' %>">
+              <a class="page-link text-dark" href="<%= getPageUrl(currentPage - 1) %>" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            <% for (let p = 1; p <= totalPages; p++) { %>
+              <% if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) { %>
+                <li class="page-item <%= p === currentPage ? 'active' : '' %>">
+                  <a class="page-link <%= p === currentPage ? 'bg-dark border-dark text-white' : 'text-dark' %>" href="<%= getPageUrl(p) %>"><%= p %></a>
+                </li>
+              <% } else if (p === currentPage - 3 || p === currentPage + 3) { %>
+                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+              <% } %>
+            <% } %>
+            <li class="page-item <%= currentPage >= totalPages ? 'disabled' : '' %>">
+              <a class="page-link text-dark" href="<%= getPageUrl(currentPage + 1) %>" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      <% } %>
     </main>
   </div>
 </div>
@@ -351,16 +388,7 @@
   function updateSort(value) {
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.set('sort', value);
-    // Preserve existing category and subcategory filters if they exist
-    const currentCategory = document.querySelector('.category-checkbox:checked')?.dataset.category;
-    if (currentCategory && currentCategory !== '') {
-      urlParams.set('category', currentCategory);
-    } else {
-      urlParams.delete('category');
-    }
-    // Subcategory is not directly handled by checkboxes in this code snippet,
-    // so it would need similar logic if it were an active filter.
-
+    urlParams.set('page', '1');
     window.location.search = urlParams.toString();
   }
 
@@ -372,12 +400,8 @@
     } else {
       urlParams.delete('category'); // Remove category filter
     }
-    // Preserve sort order when changing category
-    const currentSort = document.getElementById('sortSelect')?.value;
-    if (currentSort) {
-      urlParams.set('sort', currentSort);
-    }
-
+    urlParams.delete('subcategory');
+    urlParams.set('page', '1');
     window.location.search = urlParams.toString();
   }
 

@@ -375,7 +375,7 @@ router.post(
   uploadProducts.array("files", 20), // Use uploadProducts here
   async (req, res) => {
     try {
-      const { title, description, price, inStock, category, isFeatured, subcategories } = req.body;
+      const { title, description, price, inStock, category, isFeatured, subcategories, sizes } = req.body;
 
       const product = new Product({
         title,
@@ -388,6 +388,11 @@ router.post(
           ? subcategories
           : subcategories
           ? subcategories.split(',').map(s => s.trim()) // Handle comma-separated string
+          : [],
+        sizes: Array.isArray(sizes)
+          ? sizes
+          : sizes
+          ? sizes.split(',').map(s => s.trim()).filter(Boolean)
           : [],
         images: req.files ? req.files.map((f) => (f.path && f.path.startsWith("http")) ? f.path : f.filename) : [],
       });
@@ -436,6 +441,13 @@ router.post("/admin/products/edit/:id", isAdminAuthenticated, multerAnyReplace, 
     product.inStock = parseInt(req.body.inStock, 10);
     product.category = req.body.category;
     product.isFeatured = !!req.body.isFeatured; // Convert to boolean
+    if (req.body.sizes !== undefined) {
+      product.sizes = Array.isArray(req.body.sizes)
+        ? req.body.sizes
+        : typeof req.body.sizes === 'string'
+        ? req.body.sizes.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+    }
 
     let currentImages = [...product.images]; // Get existing images
 
@@ -450,7 +462,7 @@ router.post("/admin/products/edit/:id", isAdminAuthenticated, multerAnyReplace, 
           if (shouldRemove) {
               if (img && !img.startsWith("http")) {
                   // Delete file from disk
-                  const imagePath = path.join(__dirname, "..", "uploads", img);
+                  const imagePath = path.join(__dirname, "..", "..", "uploads", img);
                   if (fs.existsSync(imagePath)) {
                       fs.unlinkSync(imagePath);
                       console.log(`Deleted old image: ${imagePath}`);
@@ -470,7 +482,7 @@ router.post("/admin/products/edit/:id", isAdminAuthenticated, multerAnyReplace, 
         if (product.images[idx]) { // If there was an old image at this slot
           if (product.images[idx] && !product.images[idx].startsWith("http")) {
             // Delete old image file from disk
-            const oldImagePath = path.join(__dirname, "..", "uploads", product.images[idx]);
+            const oldImagePath = path.join(__dirname, "..", "..", "uploads", product.images[idx]);
             if (fs.existsSync(oldImagePath)) {
                 fs.unlinkSync(oldImagePath);
                 console.log(`Replaced and deleted old image: ${oldImagePath}`);
@@ -532,7 +544,7 @@ router.get("/admin/products/delete/:id", isAdminAuthenticated, async (req, res) 
     if (product.images && product.images.length > 0) {
       product.images.forEach(image => {
         if (image && !image.startsWith("http")) {
-          const imagePath = path.join(__dirname, "..", "uploads", image);
+          const imagePath = path.join(__dirname, "..", "..", "uploads", image);
           if (fs.existsSync(imagePath)) {
             fs.unlinkSync(imagePath);
             console.log(`Deleted product image: ${imagePath}`);
@@ -1003,7 +1015,17 @@ router.get("/secondpage", async (req, res) => {
         break;
     }
 
-    const products = await Product.find(query).sort(sortObj);
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = 12;
+    const skip = (page - 1) * limit;
+
+    const totalProducts = await Product.countDocuments(query);
+    const totalPages = Math.ceil(totalProducts / limit) || 1;
+
+    const products = await Product.find(query)
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit);
 
     res.render("pages/Main_Site_pages/secondpage", {
       products,
@@ -1011,6 +1033,9 @@ router.get("/secondpage", async (req, res) => {
       subcategory: subcategory || "",
       search: search ? search.trim() : "",
       sort: sort || "newest",
+      currentPage: page,
+      totalPages,
+      totalProducts,
     });
   } catch (error) {
     console.error("Error fetching products for secondpage:", error);

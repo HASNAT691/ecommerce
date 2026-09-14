@@ -41,6 +41,12 @@ const productSchema = new mongoose.Schema({
       trim: true,
     },
   ],
+  sizes: [
+    {
+      type: String, // e.g. "Small", "Medium", "Large", "XL", "Standard"
+      trim: true,
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

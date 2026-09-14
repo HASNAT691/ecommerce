@@ -176,6 +176,9 @@
                     <h5 class="card-title">
                       <%= item.title %>
                     </h5>
+                    <% if (item.size) { %>
+                      <p class="small text-muted mb-2"><span class="badge bg-light text-dark border">Size: <%= item.size %></span></p>
+                    <% } %>
                     <div class="d-flex align-items-center mb-2">
                       <label class="me-2">Quantity:</label>
                       <div class="input-group" style="width: 120px">

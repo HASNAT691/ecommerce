@@ -84,9 +84,9 @@
       <div class="row g-3">
         <% (product.images || []).forEach((img, i)=> { %>
           <div class="col-auto text-center">
-            <img src="/<%= img %>" width="90" class="rounded shadow d-block">
+            <img src="<%= img.startsWith('http') ? img : '/uploads/' + img %>" width="90" height="110" style="object-fit: cover;" class="rounded shadow d-block">
             <!-- replace single -->
-            <input type="file" name="replace_<%= i %>" accept=".jpg,.jpeg,.png,.pdf"
+            <input type="file" name="replace_<%= i %>" accept=".jpg,.jpeg,.png,.webp"
               class="form-control form-control-sm mt-1">
             <!-- remove -->
             <div class="form-check mt-1">
@@ -135,6 +135,19 @@
           placeholder="Add new subcategory">
         <button class="btn btn-sm btn-outline-primary" id="addSubBtn" type="button">Add</button>
       </div>
+    </div>
+
+    <!-- Sizes -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Available Sizes (comma-separated, optional)</label>
+      <input
+        type="text"
+        name="sizes"
+        class="form-control form-control-underline"
+        placeholder="e.g. Small, Medium, Large, XL, Free Size"
+        value="<%= (product.sizes || []).join(', ') %>"
+      />
+      <div class="form-text">Leave blank if this product does not require sizing (e.g. Unstitched Lawn).</div>
     </div>
 
     <!-- Featured toggle -->

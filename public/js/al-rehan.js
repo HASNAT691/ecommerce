@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const sections = document.querySelectorAll('.gallery-section');
-    
+    if (!sections || sections.length === 0) return;
+
     // Create dots container
     const dotsContainer = document.createElement('div');
     dotsContainer.classList.add('dots');
@@ -35,27 +36,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.addEventListener('scroll', updateActiveDot);
     updateActiveDot();
-
-
-    // Search Overlay behavior
-    const navbarSearchIcon = document.getElementById("navbarSearchIcon");
-    const siteSearchOverlay = document.getElementById("siteSearchOverlay");
-    const siteSearchInput = document.getElementById("siteSearchInput");
-    const closeSearchBtn = document.getElementById("closeSearchBtn");
-
-    if (navbarSearchIcon && siteSearchOverlay) {
-        navbarSearchIcon.addEventListener("click", function (e) {
-            e.preventDefault();
-            siteSearchOverlay.classList.toggle("d-none");
-            if (!siteSearchOverlay.classList.contains("d-none") && siteSearchInput) {
-                setTimeout(() => { siteSearchInput.focus(); }, 100);
-            }
-        });
-    }
-
-    if (closeSearchBtn && siteSearchOverlay) {
-        closeSearchBtn.addEventListener("click", function () {
-            siteSearchOverlay.classList.add("d-none");
-        });
-    }
 });

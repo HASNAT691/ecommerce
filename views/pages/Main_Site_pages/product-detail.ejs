@@ -157,12 +157,21 @@
                     <div class="mb-4">
                         <h5 class="mb-2">Available Sizes:</h5>
                         <% product.sizes.forEach(size=> { %>
-                            <button class="size-button" data-size="<%= size %>">
+                            <button type="button" class="size-button" data-size="<%= size %>">
                                 <%= size %>
                             </button>
                             <% }) %>
                     </div>
                 <% } %>
+
+                <div class="mb-3 d-flex align-items-center gap-3">
+                    <label class="fw-bold">Quantity:</label>
+                    <div class="input-group" style="width: 130px;">
+                        <button class="btn btn-outline-dark" type="button" id="qtyMinusBtn">-</button>
+                        <input type="number" id="detailQuantity" class="form-control text-center" value="1" min="1" max="<%= product.inStock %>">
+                        <button class="btn btn-outline-dark" type="button" id="qtyPlusBtn">+</button>
+                    </div>
+                </div>
 
                 <div class="d-grid gap-2">
                     <button class="btn btn-dark btn-lg btn-add-to-cart" id="addToCartBtn"
@@ -258,6 +267,23 @@
         }, 3000);
     }
 
+    // Quantity Stepper Logic
+    const qtyInput = document.getElementById('detailQuantity');
+    const minusBtn = document.getElementById('qtyMinusBtn');
+    const plusBtn = document.getElementById('qtyPlusBtn');
+
+    if (minusBtn && plusBtn && qtyInput) {
+        minusBtn.addEventListener('click', () => {
+            let current = parseInt(qtyInput.value, 10) || 1;
+            if (current > 1) qtyInput.value = current - 1;
+        });
+        plusBtn.addEventListener('click', () => {
+            let current = parseInt(qtyInput.value, 10) || 1;
+            let max = parseInt(qtyInput.getAttribute('max'), 10) || 999;
+            if (current < max) qtyInput.value = current + 1;
+        });
+    }
+
     // Add to Cart Logic
     document.getElementById('addToCartBtn').addEventListener('click', async function () {
         const productId = this.dataset.productId;
@@ -266,11 +292,21 @@
             return;
         }
 
+        // Size check: if sizes exist, user must select one
+        const sizeButtons = document.querySelectorAll('.size-button');
+        const selectedSizeBtn = document.querySelector('.size-button.selected');
+        if (sizeButtons.length > 0 && !selectedSizeBtn) {
+            showAlert("Please choose an available size before adding to bag.", "warning");
+            return;
+        }
+        const size = selectedSizeBtn ? selectedSizeBtn.dataset.size : null;
+        const quantity = parseInt(qtyInput ? qtyInput.value : 1, 10) || 1;
+
         try {
             const response = await fetch('/add-to-cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId })
+                body: JSON.stringify({ productId, size, quantity })
             });
             const data = await response.json();
             if (response.ok) {

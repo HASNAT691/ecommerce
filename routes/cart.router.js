@@ -72,7 +72,7 @@ const isAuthenticated = require("../middlewares/auth");
 // Add to cart
 router.post("/add-to-cart", async (req, res) => {
   try {
-    const { productId } = req.body;
+    const { productId, size, quantity } = req.body;
 
     if (!productId) {
       return res.status(400).json({ error: "Product ID is required" });
@@ -83,6 +83,9 @@ router.post("/add-to-cart", async (req, res) => {
       return res.status(404).json({ error: "Product not found" });
     }
 
+    const parsedQuantity = Math.max(1, parseInt(quantity, 10) || 1);
+    const chosenSize = size && typeof size === 'string' && size.trim() !== '' ? size.trim() : null;
+
     if (!req.session.cart) {
       req.session.cart = {
         items: [],
@@ -91,12 +94,12 @@ router.post("/add-to-cart", async (req, res) => {
     }
 
     const existingItem = req.session.cart.items.find(
-      (item) => item.productId.toString() === productId
+      (item) => item.productId.toString() === productId && (item.size || null) === chosenSize
     );
 
-    let newQuantity = 1;
+    let newQuantity = parsedQuantity;
     if (existingItem) {
-        newQuantity = existingItem.quantity + 1;
+        newQuantity = existingItem.quantity + parsedQuantity;
     }
 
     // --- Stock Check ---
@@ -113,6 +116,7 @@ router.post("/add-to-cart", async (req, res) => {
         price: product.price,
         picture: product.images, // Store the FULL array of images
         quantity: newQuantity,
+        size: chosenSize,
       });
     }
 
@@ -383,6 +387,7 @@ router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screen
         // then store item.picture[0]. If you want the full array for some reason (less common for order history), store item.picture
         picture: (Array.isArray(item.picture) ? item.picture[0] : item.picture) || 'placeholder.jpg', // Store only the first image for the order item record
         quantity: item.quantity,
+        size: item.size || null,
       })),
       subtotal: subtotal,
       total: totalWithShipping,

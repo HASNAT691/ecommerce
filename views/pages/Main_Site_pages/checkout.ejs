@@ -299,7 +299,12 @@
                       <img src="<%= itemImg %>"
                         onerror="this.onerror=null;this.src='https://placehold.co/50x60/f0f0f0/333333?text=No+Img';"
                         alt="<%= item.title %>" class="product-item-img me-2" />
-                      <%= item.title %> (x<%= item.quantity %>)
+                      <div>
+                        <%= item.title %> (x<%= item.quantity %>)
+                        <% if (item.size) { %>
+                          <div class="small text-muted"><span class="badge bg-light text-dark border">Size: <%= item.size %></span></div>
+                        <% } %>
+                      </div>
                     </div>
                     <span>PKR <%= (item.price * item.quantity).toFixed(2) %></span>
                   </li>

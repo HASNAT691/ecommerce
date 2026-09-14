@@ -16,7 +16,8 @@ const orderSchema = new mongoose.Schema({
         title: String,
         price: Number,
         picture: String, // Storing only the first image path for simplicity
-        quantity: Number
+        quantity: Number,
+        size: { type: String, default: null }
     }],
     total: { type: Number, required: true },
     subtotal: { type: Number, required: true },

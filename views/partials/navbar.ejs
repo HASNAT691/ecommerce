@@ -153,24 +153,49 @@
     </div>
   </nav>
 
-  <!-- Sleek Top Search Bar Overlay -->
-  <div id="siteSearchOverlay" class="bg-white border-bottom shadow-sm py-3 px-3 px-md-5 d-none position-absolute top-100 start-0 w-100" style="z-index: 1050; transition: all 0.3s ease;">
-    <div class="container-fluid">
-      <form action="/secondpage" method="GET" class="d-flex align-items-center gap-2">
-        <div class="input-group input-group-lg">
-          <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted fs-5"></i></span>
-          <input type="text" name="search" id="siteSearchInput" class="form-control bg-light border-start-0 shadow-none fs-6" placeholder="Search Lawn, Stitched Suits, Unstitched, Kids Collection..." value="<%= typeof search !== 'undefined' ? search : '' %>" />
-          <button class="btn btn-dark px-4 fs-6" type="submit">Search</button>
+  <!-- Sleek Top Search Bar Overlay with Backdrop -->
+  <div id="siteSearchOverlay" class="search-overlay-wrapper d-none" aria-modal="true" role="dialog" aria-label="Site Search">
+    <div class="search-overlay-backdrop" id="searchBackdrop"></div>
+    <div class="search-overlay-content bg-white shadow-lg border-bottom">
+      <div class="container py-3 py-md-4">
+        <form action="/secondpage" method="GET" class="search-overlay-form d-flex align-items-center gap-2">
+          <div class="input-group search-input-group flex-grow-1">
+            <span class="input-group-text bg-light border-0 ps-3">
+              <i class="fa-solid fa-magnifying-glass text-muted fs-6"></i>
+            </span>
+            <input
+              type="text"
+              name="search"
+              id="siteSearchInput"
+              class="form-control bg-light border-0 shadow-none py-2 py-md-2 fs-6"
+              placeholder="Search fabrics, suits, collections..."
+              value="<%= typeof search !== 'undefined' ? search : '' %>"
+              autocomplete="off"
+              required
+            />
+            <button class="btn btn-dark px-3 px-sm-4" type="submit" aria-label="Submit Search">
+              <span class="d-none d-sm-inline">Search</span>
+              <i class="fa-solid fa-arrow-right d-sm-none"></i>
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn btn-light rounded-circle search-close-btn d-flex align-items-center justify-content-center ms-1"
+            id="closeSearchBtn"
+            aria-label="Close search"
+          >
+            <i class="fa-solid fa-xmark fs-5 text-dark"></i>
+          </button>
+        </form>
+
+        <div class="d-flex gap-2 align-items-center mt-3 small text-muted flex-wrap">
+          <span class="fw-bold text-dark me-1"><i class="fa-solid fa-fire text-danger me-1"></i>Popular:</span>
+          <a href="/secondpage?search=Summer+Lawn" class="badge rounded-pill bg-light text-dark border text-decoration-none py-2 px-3 search-tag">Summer Lawn</a>
+          <a href="/secondpage?search=Stitched" class="badge rounded-pill bg-light text-dark border text-decoration-none py-2 px-3 search-tag">Stitched</a>
+          <a href="/secondpage?search=Ready-to-Wear" class="badge rounded-pill bg-light text-dark border text-decoration-none py-2 px-3 search-tag">Ready to Wear</a>
+          <a href="/secondpage?search=Unstitched" class="badge rounded-pill bg-light text-dark border text-decoration-none py-2 px-3 search-tag">Unstitched</a>
+          <a href="/secondpage?search=Kids" class="badge rounded-pill bg-light text-dark border text-decoration-none py-2 px-3 search-tag">Kids</a>
         </div>
-        <button type="button" class="btn-close ms-2 fs-5" id="closeSearchBtn" aria-label="Close search"></button>
-      </form>
-      <div class="d-flex gap-2 align-items-center mt-2 small text-muted flex-wrap">
-        <span class="fw-bold text-dark">Popular:</span>
-        <a href="/secondpage?search=Summer+Lawn" class="badge bg-light text-dark border text-decoration-none">Summer Lawn</a>
-        <a href="/secondpage?search=Stitched" class="badge bg-light text-dark border text-decoration-none">Stitched</a>
-        <a href="/secondpage?search=Ready-to-Wear" class="badge bg-light text-dark border text-decoration-none">Ready to Wear</a>
-        <a href="/secondpage?search=Unstitched" class="badge bg-light text-dark border text-decoration-none">Unstitched</a>
-        <a href="/secondpage?search=Kids" class="badge bg-light text-dark border text-decoration-none">Kids</a>
       </div>
     </div>
   </div>
@@ -267,31 +292,61 @@
         });
       });
 
-      // Search Overlay Toggle
+      // Modern Search Overlay Logic
       const searchIcon = document.getElementById('navbarSearchIcon');
       const searchOverlay = document.getElementById('siteSearchOverlay');
+      const searchBackdrop = document.getElementById('searchBackdrop');
       const searchInput = document.getElementById('siteSearchInput');
       const closeSearchBtn = document.getElementById('closeSearchBtn');
+
+      function openSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.remove('d-none');
+        // Force reflow for smooth CSS transitions
+        void searchOverlay.offsetHeight;
+        searchOverlay.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+          if (searchInput) searchInput.focus();
+        }, 150);
+      }
+
+      function closeSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.remove('is-open');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+          searchOverlay.classList.add('d-none');
+        }, 280);
+      }
 
       if (searchIcon && searchOverlay) {
         searchIcon.addEventListener('click', function (e) {
           e.preventDefault();
-          searchOverlay.classList.toggle('d-none');
-          if (!searchOverlay.classList.contains('d-none')) {
-            setTimeout(() => { searchInput && searchInput.focus(); }, 100);
+          if (searchOverlay.classList.contains('is-open')) {
+            closeSearch();
+          } else {
+            openSearch();
           }
         });
       }
 
-      if (closeSearchBtn && searchOverlay) {
-        closeSearchBtn.addEventListener('click', function () {
-          searchOverlay.classList.add('d-none');
+      if (closeSearchBtn) {
+        closeSearchBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          closeSearch();
+        });
+      }
+
+      if (searchBackdrop) {
+        searchBackdrop.addEventListener('click', function () {
+          closeSearch();
         });
       }
 
       document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && searchOverlay && !searchOverlay.classList.contains('d-none')) {
-          searchOverlay.classList.add('d-none');
+        if (e.key === 'Escape' && searchOverlay && searchOverlay.classList.contains('is-open')) {
+          closeSearch();
         }
       });
     });

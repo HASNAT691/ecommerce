@@ -395,6 +395,7 @@ router.get(["/logout", "/user/logout"], (req, res) => {
       console.error("Error destroying session on GET logout:", err);
     }
     res.clearCookie("connect.sid");
+    res.clearCookie("x-csrf-token");
     res.redirect("/user/login");
   });
 });
@@ -406,8 +407,9 @@ router.post("/logout", (req, res) => {
       console.error("Error destroying session:", err);
       return res.status(500).json({ error: "Failed to log out." });
     }
-    // Clear session cookie, 'connect.sid' is the default name for express-session cookie
+    // Clear session and CSRF cookies
     res.clearCookie("connect.sid");
+    res.clearCookie("x-csrf-token");
     // For successful logout, send JSON response which JS on frontend can handle to redirect
     res.status(200).json({ message: "Logged out successfully." });
   });

@@ -11,19 +11,27 @@ const {
   doubleCsrfProtection,
 } = doubleCsrf({
   getSecret: () => CSRF_SECRET,
-  getSessionIdentifier: (req) => req.session?.id || req.sessionID || "anonymous",
+  getSessionIdentifier: (req) => req.sessionID || req.session?.id || "anonymous",
   cookieName: "x-csrf-token",
   cookieOptions: {
     sameSite: "lax",
     path: "/",
     secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
   },
   size: 64,
   ignoredMethods: ["GET", "HEAD", "OPTIONS"],
+  getCsrfTokenFromRequest: (req) => {
+    return (
+      (req.body && req.body._csrf) ||
+      req.headers["x-csrf-token"] ||
+      req.headers["csrf-token"]
+    );
+  },
   getTokenFromRequest: (req) => {
     return (
-      req.headers["x-csrf-token"] ||
       (req.body && req.body._csrf) ||
+      req.headers["x-csrf-token"] ||
       req.headers["csrf-token"]
     );
   },

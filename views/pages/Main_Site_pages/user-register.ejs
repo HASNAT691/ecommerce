@@ -10,6 +10,7 @@
           <div class="alert alert-danger"><%= error %></div>
           <% } %>
           <form action="/user/register" method="POST">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
             <div class="mb-3">
               <label for="name" class="form-label">Full Name</label>
               <input

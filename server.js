@@ -85,7 +85,7 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET || "al-rehan-garments-development-secret-key",
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_CONNECTION_STRING || "mongodb://127.0.0.1:27017/al-rehan-garments",
       ttl: 24 * 60 * 60, // 1 day

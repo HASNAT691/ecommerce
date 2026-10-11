@@ -163,9 +163,10 @@
                                             data-picture="<%=item.picture%>">
                                         <i class="bi bi-cart-plus me-2"></i>Add to Cart
                                     </button>
+                                    <% const itemIdentifier = (item.productId ? item.productId.toString() : (item._id ? item._id.toString() : '')); %>
                                     <button class="btn btn-outline-danger" 
-                                            data-item-id="<%=item.productId%>"
-                                            onclick="removeFromWishlist('<%=item.productId%>')">
+                                            data-item-id="<%= itemIdentifier %>"
+                                            onclick="removeFromWishlist('<%= itemIdentifier %>')">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -181,47 +182,80 @@
     <script src="/js/csrf-helper.js"></script>
     <script>
         // Add confirmation for logout
-        document.querySelector('a[href="/user/logout"]').addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to logout? You will need to login again to access your wishlist.')) {
-                e.preventDefault();
-            }
-        });
+        const logoutLink = document.querySelector('a[href="/user/logout"]');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to logout? You will need to login again to access your wishlist.')) {
+                    e.preventDefault();
+                }
+            });
+        }
 
         // Function to remove item from wishlist
         async function removeFromWishlist(productId) {
+            if (!productId || productId === 'undefined' || productId === 'null') {
+                alert('Invalid item ID');
+                return;
+            }
+
             if (!confirm('Are you sure you want to remove this item from your wishlist?')) {
                 return;
             }
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
             try {
-                const response = await fetch(`/remove-from-wishlist/${productId}`, {
+                // Send DELETE request with explicit CSRF and Accept headers
+                let response = await fetch(`/remove-from-wishlist/${productId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'x-csrf-token': csrfToken
                     }
                 });
 
-                const result = await response.json();
+                // Fallback to POST if DELETE is not supported by proxy
+                if (response.status === 405) {
+                    response = await fetch(`/remove-from-wishlist/${productId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'x-csrf-token': csrfToken
+                        },
+                        body: JSON.stringify({ productId: productId })
+                    });
+                }
+
+                let result;
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    const text = await response.text();
+                    result = { success: response.ok, message: text };
+                }
                 
-                if (result.success) {
+                if (response.ok && result.success) {
                     // Find and remove the card element
-                    const card = document.querySelector(`button[data-item-id="${productId}"]`).closest('.col');
+                    const btn = document.querySelector(`button[data-item-id="${productId}"]`);
+                    const card = btn ? btn.closest('.col') : null;
                     if (card) {
                         card.remove();
-                        
-                        // Check if wishlist is now empty
-                        const remainingItems = document.querySelectorAll('.col').length;
-                        if (remainingItems === 0) {
-                            window.location.reload(); // Reload to show empty wishlist message
-                        }
                     }
-                    alert('Item removed from wishlist');
+                    
+                    // Check if wishlist is now empty
+                    const remainingCards = document.querySelectorAll('.card').length;
+                    if (remainingCards === 0) {
+                        window.location.reload();
+                    }
                 } else {
-                    alert(result.message || 'Failed to remove item');
+                    alert(result.message || result.error || 'Failed to remove item');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error removing item from wishlist');
+                console.error('Error removing item from wishlist:', error);
+                alert('Error removing item from wishlist: ' + (error.message || 'Network error'));
             }
         }
 
@@ -234,21 +268,26 @@
                     title: this.dataset.title,
                     picture: this.dataset.picture
                 };
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
                 try {
                     const response = await fetch('/add-to-cart', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'x-csrf-token': csrfToken
                         },
                         body: JSON.stringify(productData)
                     });
                     const result = await response.json();
                     if (result.success) {
                         alert('Added to cart successfully!');
+                    } else {
+                        alert(result.message || result.error || 'Failed to add item to cart');
                     }
                 } catch (error) {
-                    console.error('Error:', error);
+                    console.error('Error adding to cart:', error);
                     alert('Error adding item to cart');
                 }
             });

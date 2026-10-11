@@ -109,41 +109,58 @@ router.post('/add-to-wishlist', isAuthenticated, wishlistLimiter, async (req, re
     }
 });
 
-// Remove from wishlist - protected route
-router.delete('/remove-from-wishlist/:productId', isAuthenticated, wishlistLimiter, async (req, res) => {
+// Remove from wishlist handler - supports both DELETE and POST
+const handleRemoveFromWishlist = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const productId = req.params.productId;
+        const productId = req.params.productId || (req.body && req.body.productId) || req.query.productId;
 
-        if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+        if (!productId || typeof productId !== 'string' || !productId.trim()) {
             return res.status(400).json({
                 success: false,
                 message: 'Valid Product ID is required'
             });
         }
 
-        const wishlist = await Wishlist.findOne({ userId });
-        if (!wishlist) {
-            return res.status(404).json({
-                success: false,
-                message: 'Wishlist not found'
+        const trimmedProductId = productId.trim();
+        const userObjectId = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : null;
+        const productObjectId = mongoose.Types.ObjectId.isValid(trimmedProductId) ? new mongoose.Types.ObjectId(trimmedProductId) : null;
+
+        const userQuery = {
+            $or: [
+                { userId: userId },
+                ...(userObjectId ? [{ userId: userObjectId }] : [])
+            ]
+        };
+
+        const pullFilter = {
+            $or: [
+                { productId: trimmedProductId },
+                { _id: trimmedProductId },
+                ...(productObjectId ? [{ productId: productObjectId }, { _id: productObjectId }] : [])
+            ]
+        };
+
+        // 1. Atomic $pull update across matching wishlist documents
+        await Wishlist.updateMany(userQuery, {
+            $pull: { items: pullFilter }
+        });
+
+        // 2. Also ensure any in-memory/loaded document is cleanly synchronized
+        const wishlist = await Wishlist.findOne(userQuery);
+        if (wishlist) {
+            const initialCount = wishlist.items.length;
+            wishlist.items = wishlist.items.filter(item => {
+                if (!item) return false;
+                const pId = item.productId ? item.productId.toString() : '';
+                const sId = item._id ? item._id.toString() : '';
+                return pId !== trimmedProductId && sId !== trimmedProductId;
             });
+            if (wishlist.items.length < initialCount) {
+                wishlist.markModified('items');
+                await wishlist.save();
+            }
         }
-
-        // Find and remove the item
-        const initialLength = wishlist.items.length;
-        wishlist.items = wishlist.items.filter(item => item.productId.toString() !== productId.toString());
-
-        // Check if item was found and removed
-        if (wishlist.items.length === initialLength) {
-            return res.status(404).json({
-                success: false,
-                message: 'Item not found in wishlist'
-            });
-        }
-
-        // Save the updated wishlist
-        await wishlist.save();
 
         res.json({
             success: true,
@@ -157,6 +174,10 @@ router.delete('/remove-from-wishlist/:productId', isAuthenticated, wishlistLimit
             message: 'Error removing item from wishlist'
         });
     }
-});
+};
+
+router.delete('/remove-from-wishlist/:productId', isAuthenticated, wishlistLimiter, handleRemoveFromWishlist);
+router.post('/remove-from-wishlist/:productId', isAuthenticated, wishlistLimiter, handleRemoveFromWishlist);
+router.post('/remove-from-wishlist', isAuthenticated, wishlistLimiter, handleRemoveFromWishlist);
 
 module.exports = router; 

@@ -7,6 +7,7 @@ const mongoose = require('mongoose'); // Import mongoose for ObjectId
 const fs = require('fs'); // For file system operations (deleting screenshots)
 const path = require('path'); // For path manipulation
 const rateLimit = require("express-rate-limit");
+const { doubleCsrfProtection } = require("../middlewares/csrf.middleware");
 
 const checkoutLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -16,61 +17,22 @@ const checkoutLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// For handling JazzCash screenshot uploads
-const multer = require('multer');
+const cartMutationLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 60, // Limit cart mutations to 60 per minute per IP
+  message: { error: "Too many cart actions. Please slow down." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-
-let storage;
-
-if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-    cloudinary.config({
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET
-    });
-
-    storage = new CloudinaryStorage({
-        cloudinary: cloudinary,
-        params: {
-            folder: 'screenshots',
-            allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-        },
-    });
-} else {
-    // Local fallback
-    storage = multer.diskStorage({
-        destination: (req, file, cb) => {
-            const uploadDir = 'uploads/screenshots';
-            // Create the directory if it doesn't exist
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
-            cb(null, uploadDir);
-        },
-        filename: (req, file, cb) => {
-            cb(null, `${Date.now()}-${file.originalname}`);
-        },
-    });
-}
-const imageFileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype.toLowerCase());
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
-    cb(new Error("Only image files (jpg, jpeg, png, webp) are allowed!"), false);
-  }
-};
-const upload = multer({ storage: storage, fileFilter: imageFileFilter });
+// Upload middleware for JazzCash payment screenshots
+const { uploadScreenshot: upload } = require("../config/upload.config");
 
 const isAuthenticated = require("../middlewares/auth");
 
 
 // Add to cart
-router.post("/add-to-cart", async (req, res) => {
+router.post("/add-to-cart", cartMutationLimiter, async (req, res) => {
   try {
     const { productId, size, quantity } = req.body;
 
@@ -172,7 +134,7 @@ router.get('/api/check-auth-status', (req, res) => {
 });
 
 // Remove from cart
-router.post("/remove-from-cart", async (req, res) => {
+router.post("/remove-from-cart", cartMutationLimiter, async (req, res) => {
   try {
     const { productId } = req.body;
     const cart = req.session.cart;
@@ -210,7 +172,7 @@ router.post("/remove-from-cart", async (req, res) => {
 });
 
 // Update cart item quantity
-router.post("/update-cart-quantity", async (req, res) => {
+router.post("/update-cart-quantity", cartMutationLimiter, async (req, res) => {
   try {
     const { productId, quantity } = req.body;
     const cart = req.session.cart;
@@ -288,172 +250,178 @@ router.get("/checkout", isAuthenticated, async (req, res) => {
 
 // POST /checkout - Processes the order
 // Use upload.single('screenshot') for the file upload if EasyPaisa is selected
-router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screenshot'), async (req, res) => {
-  const deductedItems = [];
+router.post("/checkout", isAuthenticated, checkoutLimiter, upload.single('screenshot'), doubleCsrfProtection, async (req, res) => {
+  const cart = req.session.cart;
+
+  if (!cart || cart.items.length === 0) {
+    return res.status(400).json({ error: "Your cart is empty. Please add items to proceed." });
+  }
+
+  const userId = req.session.userId;
+
+  // --- Input Validation (before touching the database) ---
+  const {
+    name, addressLine1, addressLine2, city, state, zipCode, country, phone,
+    deliveryMethod, paymentMethod
+  } = req.body;
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ error: "Full Name is required." });
+  }
+  if (!phone || typeof phone !== 'string' || !phone.trim()) {
+    return res.status(400).json({ error: "Phone number is required." });
+  }
+  if (!addressLine1 || typeof addressLine1 !== 'string' || !addressLine1.trim()) {
+    return res.status(400).json({ error: "Address line 1 is required." });
+  }
+  if (!city || typeof city !== 'string' || !city.trim()) {
+    return res.status(400).json({ error: "City is required." });
+  }
+  if (!deliveryMethod || !['Standard', 'Express'].includes(deliveryMethod)) {
+    return res.status(400).json({ error: "Please select a valid delivery method." });
+  }
+  if (!paymentMethod || !['COD', 'EasyPaisa'].includes(paymentMethod)) {
+    return res.status(400).json({ error: "Please select a valid payment method." });
+  }
+  if (paymentMethod === 'EasyPaisa' && !req.file) {
+    return res.status(400).json({ error: "Payment screenshot is required for EasyPaisa." });
+  }
+
+  // --- Shipping Charge Calculation ---
+  let totalItems = 0;
+  cart.items.forEach(item => { totalItems += item.quantity; });
+  const additionalItemFee = totalItems > 1 ? (totalItems - 1) * 50 : 0;
+
+  let shippingCharge = 0;
+  if (deliveryMethod === 'Standard') {
+    shippingCharge = cart.total >= 5000 ? 0 : 190 + additionalItemFee;
+  } else if (deliveryMethod === 'Express') {
+    shippingCharge = 500 + additionalItemFee;
+  }
+
+  const subtotal = cart.total;
+  const totalWithShipping = subtotal + shippingCharge;
+  const paymentScreenshotPath = req.file ? req.file.path : null;
+
+  // --- Collision-safe readable Order ID generator ---
+  const generateReadableOrderId = () => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 10; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  };
+
+  // Retry up to 5 times to avoid duplicate key collision on readableOrderId
+  const getUniqueOrderId = async () => {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const id = generateReadableOrderId();
+      const existing = await Order.findOne({ readableOrderId: id }).lean();
+      if (!existing) return id;
+    }
+    throw new Error("Could not generate a unique order ID. Please try again.");
+  };
+
+  // --- MongoDB Transaction: atomic stock deduction + order creation ---
+  const dbSession = await mongoose.startSession();
   try {
-    const cart = req.session.cart;
+    dbSession.startTransaction();
 
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ error: "Your cart is empty. Please add items to proceed." });
-    }
-
-    const userId = req.session.userId;
-
-    // Extract and validate shipping details before modifying inventory
-    const {
-      name, addressLine1, addressLine2, city, state, zipCode, country, phone,
-      deliveryMethod, paymentMethod
-    } = req.body;
-
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return res.status(400).json({ error: "Full Name is required." });
-    }
-    if (!phone || typeof phone !== 'string' || !phone.trim()) {
-      return res.status(400).json({ error: "Phone number is required." });
-    }
-    if (!addressLine1 || typeof addressLine1 !== 'string' || !addressLine1.trim()) {
-      return res.status(400).json({ error: "Address line 1 is required." });
-    }
-    if (!city || typeof city !== 'string' || !city.trim()) {
-      return res.status(400).json({ error: "City is required." });
-    }
-    if (!deliveryMethod || !['Standard', 'Express'].includes(deliveryMethod)) {
-      return res.status(400).json({ error: "Please select a valid delivery method." });
-    }
-    if (!paymentMethod || !['COD', 'EasyPaisa'].includes(paymentMethod)) {
-      return res.status(400).json({ error: "Please select a valid payment method." });
-    }
-    if (paymentMethod === 'EasyPaisa' && !req.file) {
-      return res.status(400).json({ error: "Payment screenshot is required for EasyPaisa." });
-    }
-
-    // Atomically deduct stock for all items right before final checkout
-    let stockErrorItem = null;
-
+    // Deduct stock for every cart item atomically within the transaction
     for (const cartItem of cart.items) {
-        const updatedProduct = await Product.findOneAndUpdate(
-            { _id: cartItem.productId, inStock: { $gte: cartItem.quantity } },
-            { $inc: { inStock: -cartItem.quantity } },
-            { new: true }
-        );
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: cartItem.productId, inStock: { $gte: cartItem.quantity } },
+        { $inc: { inStock: -cartItem.quantity } },
+        { new: true, session: dbSession }
+      );
 
-        if (!updatedProduct) {
-            stockErrorItem = cartItem.title;
-            break;
+      if (!updatedProduct) {
+        // Not enough stock — abort the whole transaction (no partial deductions committed)
+        await dbSession.abortTransaction();
+        dbSession.endSession();
+
+        // Clean up uploaded file if present (local storage only)
+        if (req.file && req.file.path && !req.file.path.startsWith('http')) {
+          fs.unlink(req.file.path, (err) => {
+            if (err) console.error('Error deleting uploaded file on stock failure:', err);
+          });
         }
-        deductedItems.push(cartItem);
-    }
 
-    if (stockErrorItem) {
-        // Roll back already-deducted items for this batch
-        for (const item of deductedItems) {
-            await Product.findByIdAndUpdate(item.productId, { $inc: { inStock: item.quantity } });
-        }
-        return res.status(400).json({ error: `Stock for "${stockErrorItem}" is insufficient or unavailable.` });
-    }
-
-    // Determine shipping charge
-    let totalItems = 0;
-    cart.items.forEach(item => { totalItems += item.quantity; });
-    let additionalItemFee = totalItems > 1 ? (totalItems - 1) * 50 : 0;
-    
-    let shippingCharge = 0;
-    if (deliveryMethod === 'Standard') {
-      // Free nationwide delivery on standard orders PKR 5,000 and above
-      if (cart.total >= 5000) {
-        shippingCharge = 0;
-      } else {
-        shippingCharge = 190 + additionalItemFee;
+        return res.status(400).json({
+          error: `Stock for "${cartItem.title}" is insufficient or unavailable.`
+        });
       }
-    } else if (deliveryMethod === 'Express') {
-      shippingCharge = 500 + additionalItemFee;
     }
 
-    const subtotal = cart.total;
-    const totalWithShipping = subtotal + shippingCharge;
-    let paymentScreenshotPath = req.file ? req.file.path : null;
+    const readableOrderId = await getUniqueOrderId();
 
-    // Generate a readable Order ID
-    // Simple random alphanumeric string for demonstration.
-    // For production, consider collision avoidance (e.g., check if ID exists, or use a sequence).
-    const generateReadableOrderId = () => {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let result = '';
-        const length = 10; // e.g., 'ABC123DEF4'
-        for (let i = 0; i < length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        return result;
-    };
-
-    const readableOrderId = generateReadableOrderId();
-
-
-    // Create order
+    // Create the order document inside the same transaction
     const order = new Order({
       userId: new mongoose.Types.ObjectId(userId),
-      readableOrderId: readableOrderId, // Save the generated readable ID
+      readableOrderId,
       items: cart.items.map((item) => ({
         productId: new mongoose.Types.ObjectId(item.productId),
         title: item.title,
         price: item.price,
-        // When saving to Order model, if you only want the *first* image for the order history
-        // then store item.picture[0]. If you want the full array for some reason (less common for order history), store item.picture
-        picture: (Array.isArray(item.picture) ? item.picture[0] : item.picture) || 'placeholder.jpg', // Store only the first image for the order item record
+        picture: (Array.isArray(item.picture) ? item.picture[0] : item.picture) || 'placeholder.jpg',
         quantity: item.quantity,
         size: item.size || null,
       })),
-      subtotal: subtotal,
+      subtotal,
       total: totalWithShipping,
-      shippingCharge: shippingCharge,
-      deliveryMethod: deliveryMethod,
-      paymentMethod: paymentMethod,
+      shippingCharge,
+      deliveryMethod,
+      paymentMethod,
       paymentScreenshot: paymentScreenshotPath,
       shippingAddress: {
-        name: name,
-        addressLine1: addressLine1,
-        addressLine2: addressLine2,
-        city: city,
-        state: state,
-        zipCode: zipCode,
-        country: country,
-        phone: phone,
+        name: name.trim(),
+        addressLine1: addressLine1.trim(),
+        addressLine2: addressLine2 ? addressLine2.trim() : '',
+        city: city.trim(),
+        state: state ? state.trim() : '',
+        zipCode: zipCode ? zipCode.trim() : '',
+        country: country ? country.trim() : 'Pakistan',
+        phone: phone.trim(),
       },
       orderDate: new Date(),
-      status: (paymentMethod === 'COD') ? 'Pending' : 'Confirmed',
+      status: paymentMethod === 'COD' ? 'Pending' : 'Confirmed',
     });
 
-    await order.save();
+    await order.save({ session: dbSession });
 
-    // Clear cart after successful order
-    req.session.cart = {
-      items: [],
-      total: 0,
-    };
+    // All operations succeeded — commit the transaction
+    await dbSession.commitTransaction();
+    dbSession.endSession();
 
-    // Send success JSON response, including the readableOrderId
-    res.status(200).json({ success: true, message: "Order placed successfully!", orderId: order._id, readableOrderId: order.readableOrderId });
+    // Clear cart after confirmed commit
+    req.session.cart = { items: [], total: 0 };
+
+    res.status(200).json({
+      success: true,
+      message: "Order placed successfully!",
+      orderId: order._id,
+      readableOrderId: order.readableOrderId,
+    });
 
   } catch (error) {
+    // Transaction aborts automatically on uncaught error, but explicitly abort for safety
+    try { await dbSession.abortTransaction(); } catch (_) {}
+    dbSession.endSession();
+
     console.error("Checkout Error:", error);
-    // Roll back already-deducted inventory items if order creation fails
-    if (deductedItems && deductedItems.length > 0) {
-      for (const item of deductedItems) {
-        try {
-          await Product.findByIdAndUpdate(item.productId, { $inc: { inStock: item.quantity } });
-        } catch (rollbackErr) {
-          console.error("Stock rollback error for item:", item.productId, rollbackErr);
-        }
-      }
-    }
-    // If an error occurs after file upload, delete the uploaded file (local only)
+
+    // Clean up uploaded file on error (local storage only)
     if (req.file && req.file.path && !req.file.path.startsWith('http')) {
-        fs.unlink(req.file.path, (err) => {
-            if (err) console.error('Error deleting uploaded file:', err);
-        });
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting uploaded file:', err);
+      });
     }
+
     res.status(500).json({ error: "An error occurred during checkout: " + error.message });
   }
 });
 
 module.exports = router;
+
+

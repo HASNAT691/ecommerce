@@ -5,6 +5,7 @@ const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const rateLimit = require("express-rate-limit");
 const { validateStringFields } = require("../../middlewares/validation.middleware");
+const { doubleCsrfProtection } = require("../../middlewares/csrf.middleware");
 const fs = require('fs'); // For file system operations (deleting images)
 const path = require('path'); // For path manipulation
 
@@ -24,50 +25,12 @@ const isAdminAuthenticated = (req, res, next) => {
     }
 };
 
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
-
-let storageProducts;
-
-if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-  });
-
-  storageProducts = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-      folder: "products",
-      allowed_formats: ["jpg", "png", "jpeg", "webp"],
-    },
-  });
-} else {
-  // Local fallback
-  storageProducts = multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadDir = "./uploads"; // Products are uploaded to the base 'uploads' folder
-      // Ensure the directory exists
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-  });
-}
-const imageFileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype.toLowerCase());
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
-    cb(new Error("Only image files (jpg, jpeg, png, webp) are allowed!"), false);
-  }
+// Helper to escape user input for safe RegExp matching
+const escapeRegex = (str) => {
+  return typeof str === 'string' ? str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
 };
-const uploadProducts = multer({ storage: storageProducts, fileFilter: imageFileFilter });
+
+const { uploadProducts } = require("../../config/upload.config");
 
 /* Multer configuration for dynamic file replacement on product edit */
 function multerAnyReplace(req, res, next) {
@@ -305,53 +268,60 @@ router.get("/admin/api/analytics", isAdminAuthenticated, async (req, res) => {
 
 /* GET all products with sort / filter / search */
 router.get("/admin/products", isAdminAuthenticated, async (req, res) => {
-  const page = Math.max(parseInt(req.query.page) || 1, 1);
-  const limit = 10;
-  const skip = (page - 1) * limit;
+  try {
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = 10;
+    const skip = (page - 1) * limit;
 
-  const sortDir = req.query.sort === "desc" ? -1 : 1;
-  const categoryId = req.query.category;
-  const searchStr = req.query.search;
+    const sortDir = req.query.sort === "desc" ? -1 : 1;
+    const categoryId = req.query.category;
+    const searchStr = req.query.search;
 
-  let q = {}; // Build query object
-  if (categoryId) q.category = categoryId;
-  if (searchStr) {
-    const rx = new RegExp(searchStr, "i");
-    q.$or = [
-      { title: rx },
-      { description: rx },
-      { subcategories: rx },
-    ];
+    let q = {}; // Build query object
+    if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
+      q.category = categoryId;
+    }
+    if (searchStr && typeof searchStr === "string" && searchStr.trim()) {
+      const rx = new RegExp(escapeRegex(searchStr.trim()), "i");
+      q.$or = [
+        { title: rx },
+        { description: rx },
+        { subcategories: rx },
+      ];
+    }
+
+    const [products, total] = await Promise.all([
+      Product.find(q)
+        .populate("category")
+        .sort({ price: sortDir })
+        .skip(skip)
+        .limit(limit),
+      Product.countDocuments(q),
+    ]);
+
+    const categories = await Category.find();
+    const totalPages = Math.ceil(total / limit);
+
+    // To keep filters while paging
+    const urlParams = new URLSearchParams(req.query);
+    urlParams.delete("page");
+    const queryString = urlParams.toString();
+
+    res.render("pages/Admin_Pages/products", {
+      layout: "admin-layout.ejs",
+      products,
+      categories,
+      page,
+      totalPages,
+      queryString,
+      currentCategory: categoryId,
+      currentSort: req.query.sort,
+      search: searchStr,
+    });
+  } catch (error) {
+    console.error("Error fetching admin products:", error);
+    res.status(500).send("Error loading products page. Please try again.");
   }
-
-  const [products, total] = await Promise.all([
-    Product.find(q)
-      .populate("category")
-      .sort({ price: sortDir }) // Sorting by price as per your original code
-      .skip(skip)
-      .limit(limit),
-    Product.countDocuments(q),
-  ]);
-
-  const categories = await Category.find();
-  const totalPages = Math.ceil(total / limit);
-
-  // To keep filters while paging
-  const urlParams = new URLSearchParams(req.query);
-  urlParams.delete("page");
-  const queryString = urlParams.toString();
-
-  res.render("pages/Admin_Pages/products", {
-    layout: "admin-layout.ejs",
-    products,
-    categories,
-    page,
-    totalPages,
-    queryString,
-    currentCategory: categoryId,
-    currentSort: req.query.sort,
-    search: searchStr,
-  });
 });
 
 /* GET create product form */
@@ -373,6 +343,7 @@ router.post(
   "/admin/products/create",
   isAdminAuthenticated,
   uploadProducts.array("files", 20), // Use uploadProducts here
+  doubleCsrfProtection,
   async (req, res) => {
     try {
       const { title, description, price, inStock, category, isFeatured, subcategories, sizes } = req.body;
@@ -429,7 +400,7 @@ router.get("/admin/products/edit/:id", isAdminAuthenticated, async (req, res) =>
 });
 
 /* POST edit product action */
-router.post("/admin/products/edit/:id", isAdminAuthenticated, multerAnyReplace, async (req, res) => {
+router.post("/admin/products/edit/:id", isAdminAuthenticated, multerAnyReplace, doubleCsrfProtection, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).send("Product not found");
@@ -559,7 +530,6 @@ const deleteProductHandler = async (req, res) => {
   }
 };
 router.post("/admin/products/delete/:id", isAdminAuthenticated, deleteProductHandler);
-router.get("/admin/products/delete/:id", isAdminAuthenticated, deleteProductHandler);
 
 // --- ADMIN CATEGORIES MANAGEMENT ---
 
@@ -616,7 +586,6 @@ const deleteCategoryHandler = async (req, res) => {
   }
 };
 router.post("/admin/categories/delete/:id", isAdminAuthenticated, deleteCategoryHandler);
-router.get("/admin/categories/delete/:id", isAdminAuthenticated, deleteCategoryHandler);
 
 router.get("/admin/categories/edit/:id", isAdminAuthenticated, async (req, res) => {
   try {
@@ -902,6 +871,10 @@ router.get("/track-order", (req, res) => {
 // API to track order by readable ID
 router.post("/api/track-order", async (req, res) => {
     try {
+        const { readableOrderId } = req.body;
+        if (!readableOrderId || typeof readableOrderId !== 'string') {
+            return res.status(400).json({ error: "Valid Order ID is required." });
+        }
         const rawId = readableOrderId.trim();
         const cleanId = rawId.replace(/^#/, "").trim();
 
@@ -957,11 +930,6 @@ router.post("/api/track-order", async (req, res) => {
         res.status(500).json({ error: "An error occurred while tracking your order." });
     }
 });
-
-// Helper to escape user input for safe RegExp matching
-const escapeRegex = (str) => {
-  return typeof str === 'string' ? str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
-};
 
 // GET secondpage (main product listing for users)
 router.get("/secondpage", async (req, res) => {
@@ -1163,19 +1131,28 @@ router.get("/product/:id", async (req, res) => {
     }
 });
 
-// Admin logout route
+// Admin logout route — always clear the admin flag and regenerate the session
+// to prevent session-replay attacks regardless of whether a user session exists.
 router.get("/admin/logout", (req, res) => {
   if (req.session) {
     req.session.isAdmin = false;
-    if (!req.session.userId) {
-      req.session.destroy(() => {
-        res.clearCookie("connect.sid");
-        res.redirect("/admin/login");
-      });
-      return;
-    }
+    // Regenerate the session to get a new session ID and invalidate the old one.
+    // If the user was also logged in as a customer, their userId is preserved in
+    // the new session so they remain authenticated on the storefront.
+    const preservedUserId = req.session.userId || null;
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error("Error regenerating session on admin logout:", err);
+      }
+      if (preservedUserId) {
+        req.session.userId = preservedUserId;
+      }
+      res.redirect("/admin/login");
+    });
+    return;
   }
   res.redirect("/admin/login");
 });
+
 
 module.exports = router;

@@ -119,9 +119,10 @@ router.get("/profile", isAuthenticated, async (req, res) => {
       return res.redirect("/user/login"); // Redirect to login
     }
 
-    // Fetch user's orders
-    // Assuming Order model has a userId field that matches User._id or a simple string ID
-    const orders = await Order.find({ userId: user._id.toString() }).sort({
+    // Fetch user's orders (matches both ObjectId and legacy string references)
+    const orders = await Order.find({
+      $or: [{ userId: user._id }, { userId: user._id.toString() }],
+    }).sort({
       orderDate: -1,
     });
 
@@ -140,14 +141,22 @@ router.get("/profile", isAuthenticated, async (req, res) => {
 router.put("/api/profile/update", isAuthenticated, async (req, res) => {
   try {
     const { name, phone } = req.body;
+
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ error: "Name is required." });
+    }
+    if (!phone || typeof phone !== "string" || !phone.trim()) {
+      return res.status(400).json({ error: "Phone number is required." });
+    }
+
     const user = await User.findById(req.session.userId);
 
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
 
-    user.name = name;
-    user.phone = phone;
+    user.name = name.trim();
+    user.phone = phone.trim();
     await user.save();
 
     res.status(200).json({ message: "Profile updated successfully!" });

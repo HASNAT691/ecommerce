@@ -10,6 +10,12 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # Node.js Ecommerce App
   app:
@@ -19,9 +25,14 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
-      - MONGO_URL=mongodb://mongo:27017/al-rehan-garments
+      - MONGODB_CONNECTION_STRING=mongodb://mongo:27017/al-rehan-garments
+      - NODE_ENV=production
+      # SESSION_SECRET must be set via a .env file or Docker secret — never hardcode here
+      # - SESSION_SECRET=your_secret_here
+
     volumes:
       - ./uploads:/app/uploads
 

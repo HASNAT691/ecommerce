@@ -6,16 +6,64 @@ const helmet = require("helmet");
 const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
 const path = require("path"); // <-- ADDED: Required for path manipulation for static files
+const {
+  generateToken,
+  doubleCsrfProtection,
+  invalidCsrfTokenError,
+} = require("./middlewares/csrf.middleware");
 
 // Import your routers
-const cartRouter = require("./routes/cart.router"); // Corrected to cart.route.js based on previous context
-const wishlistRouter = require("./routes/wishlist.router"); // Assuming this exists
-const userRouter = require("./routes/user.router"); // Corrected to user.route.js based on previous context
-let productsRouter = require("./routes/admin/products.router"); // Admin/Product routes
+const cartRouter = require("./routes/cart.router");
+const wishlistRouter = require("./routes/wishlist.router");
+const userRouter = require("./routes/user.router");
+const productsRouter = require("./routes/admin/products.router");
 
-let app = express();
+// Security check: enforce SESSION_SECRET in production
+if (process.env.NODE_ENV === "production" && !process.env.SESSION_SECRET) {
+  throw new Error("FATAL SECURITY ERROR: SESSION_SECRET must be defined in production mode.");
+}
+
+const app = express();
 app.set("trust proxy", 1);
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'", // Required for inline scripts in EJS templates — refactor to nonces in future
+          "https://cdn.jsdelivr.net",
+          "https://cdnjs.cloudflare.com",
+          "https://code.jquery.com",
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'", // Required for inline styles in EJS templates
+          "https://cdn.jsdelivr.net",
+          "https://cdnjs.cloudflare.com",
+          "https://fonts.googleapis.com",
+        ],
+        fontSrc: [
+          "'self'",
+          "https://cdn.jsdelivr.net",
+          "https://cdnjs.cloudflare.com",
+          "https://fonts.gstatic.com",
+        ],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https://res.cloudinary.com", // Cloudinary product images
+        ],
+        connectSrc: ["'self'"],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null,
+      },
+    },
+    crossOriginEmbedderPolicy: false, // Allows CDN resources to load without COEP issues
+  })
+);
 
 // Set up EJS layouts
 var expressLayouts = require("express-ejs-layouts");
@@ -23,13 +71,11 @@ app.use(expressLayouts);
 app.set("layout", "layout");
 app.set("view engine", "ejs"); // Set view engine here
 
-// Middleware order is important:
-// Parse URL-encoded data (for form submissions)
-// Fix for body-parser deprecation warning: explicitly provide the extended option
-app.use(express.urlencoded({ extended: true })); // <-- UPDATED: Add { extended: true }
+// Parse URL-encoded data (for form submissions) with 1MB size limit
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-// Parse JSON request bodies
-app.use(express.json()); // <-- Moved above cookie-parser and session for consistency
+// Parse JSON request bodies with 1MB size limit
+app.use(express.json({ limit: "1mb" }));
 
 // Parse cookies
 app.use(cookieParser());
@@ -74,18 +120,43 @@ app.use((req, res, next) => {
   res.locals.isAuthenticated = !!req.session.userId;
   res.locals.isAdmin = !!req.session.isAdmin;
   res.locals.currentPath = req.path;
+  try {
+    res.locals.csrfToken = generateToken(req, res);
+  } catch (err) {
+    res.locals.csrfToken = "";
+  }
   next();
 });
 
+// Multipart routes handle file streams via Multer; Multer must parse the stream first,
+// so those routes apply doubleCsrfProtection after Multer at the route level.
+const multipartRoutePrefixes = [
+  "/checkout",
+  "/admin/products/create",
+  "/admin/products/edit",
+];
+
+const conditionalCsrfProtection = (req, res, next) => {
+  const isMultipart = multipartRoutePrefixes.some((prefix) => req.path.startsWith(prefix));
+  const contentType = req.headers["content-type"] || "";
+  if (isMultipart && contentType.includes("multipart/form-data")) {
+    return next();
+  }
+  return doubleCsrfProtection(req, res, next);
+};
+
+// Global CSRF Protection for all URL-encoded and JSON POST/PUT/DELETE requests
+app.use(conditionalCsrfProtection);
+
 // Connect to MongoDB
-let connectionstring = process.env.MONGODB_CONNECTION_STRING || "mongodb://127.0.0.1:27017/al-rehan-garments";
+const connectionString = process.env.MONGODB_CONNECTION_STRING || "mongodb://127.0.0.1:27017/al-rehan-garments";
 mongoose
-  .connect(connectionstring)
+  .connect(connectionString)
   .then(() => {
-    console.log(`Connected to ${connectionstring} `);
+    console.log("Successfully connected to MongoDB");
   })
   .catch((err) => {
-    console.error("Error connecting to MongoDB:", err); // Use console.error for errors
+    console.error("Error connecting to MongoDB:", err.message);
   });
 
 // Define your routes
@@ -107,6 +178,18 @@ app.get("/", async (req, res) => {
   }
 });
 
+// Health check endpoint for Docker / Container Orchestrators
+app.get("/health", (req, res) => {
+  const isDbConnected = mongoose.connection.readyState === 1;
+  const status = isDbConnected ? 200 : 503;
+  res.status(status).json({
+    status: isDbConnected ? "healthy" : "unhealthy",
+    uptime: Math.floor(process.uptime()),
+    database: isDbConnected ? "connected" : "disconnected",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // 404 Page Not Found Handler
 app.use((req, res, next) => {
   res.status(404).render("pages/Main_Site_pages/error", {
@@ -116,8 +199,20 @@ app.use((req, res, next) => {
   });
 });
 
-// 500 Global Server Error Handler
+// Global Error Handler
 app.use((err, req, res, next) => {
+  // Catch CSRF validation errors
+  if (err === invalidCsrfTokenError || err.code === "EBADCSRFTOKEN" || (err.message && err.message.toLowerCase().includes("csrf"))) {
+    if (req.xhr || (req.headers.accept && req.headers.accept.includes("json"))) {
+      return res.status(403).json({ error: "Invalid or expired security token (CSRF). Please refresh and try again." });
+    }
+    return res.status(403).render("pages/Main_Site_pages/error", {
+      title: "Security Check Failed",
+      message: "Your session or security token (CSRF) has expired. Please refresh the page and try again.",
+      layout: "layout.ejs",
+    });
+  }
+
   console.error("Unhandled Server Error:", err);
   res.status(500).render("pages/Main_Site_pages/error", {
     title: "Internal Server Error",

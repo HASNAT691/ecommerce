@@ -1,9 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
+const rateLimit = require('express-rate-limit');
 const Wishlist = require('../model/wishlist.model');
 const User = require('../model/user.model');
 const Product = require('../model/products.models');
 const isAuthenticated = require('../middlewares/auth');
+
+const wishlistLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 60, // Limit wishlist actions to 60 per minute per IP
+    message: { success: false, message: 'Too many wishlist requests. Please slow down.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // View wishlist - protected route with email verification
 router.get('/wishlist', isAuthenticated, async (req, res) => {
@@ -29,11 +39,11 @@ router.get('/wishlist', isAuthenticated, async (req, res) => {
 });
 
 // Add to wishlist - protected route
-router.post('/add-to-wishlist', isAuthenticated, async (req, res) => {
+router.post('/add-to-wishlist', isAuthenticated, wishlistLimiter, async (req, res) => {
     try {
         const { productId } = req.body;
-        if (!productId) {
-            return res.status(400).json({ success: false, message: 'Product ID is required' });
+        if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).json({ success: false, message: 'Valid Product ID is required' });
         }
 
         const product = await Product.findById(productId);
@@ -61,11 +71,11 @@ router.post('/add-to-wishlist', isAuthenticated, async (req, res) => {
         }
 
         // Check if item already exists
-        const existingItem = wishlist.items.find(item => item.productId === productId);
+        const existingItem = wishlist.items.find(item => item.productId.toString() === productId.toString());
         if (!existingItem) {
             const itemPic = (product.images && product.images.length > 0) ? product.images[0] : (req.body.picture || '');
             wishlist.items.push({
-                productId,
+                productId: product._id,
                 title: product.title,
                 price: Number(product.price),
                 picture: itemPic
@@ -100,10 +110,17 @@ router.post('/add-to-wishlist', isAuthenticated, async (req, res) => {
 });
 
 // Remove from wishlist - protected route
-router.delete('/remove-from-wishlist/:productId', isAuthenticated, async (req, res) => {
+router.delete('/remove-from-wishlist/:productId', isAuthenticated, wishlistLimiter, async (req, res) => {
     try {
         const userId = req.session.userId;
         const productId = req.params.productId;
+
+        if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid Product ID is required'
+            });
+        }
 
         const wishlist = await Wishlist.findOne({ userId });
         if (!wishlist) {
@@ -115,7 +132,7 @@ router.delete('/remove-from-wishlist/:productId', isAuthenticated, async (req, r
 
         // Find and remove the item
         const initialLength = wishlist.items.length;
-        wishlist.items = wishlist.items.filter(item => item.productId !== productId);
+        wishlist.items = wishlist.items.filter(item => item.productId.toString() !== productId.toString());
 
         // Check if item was found and removed
         if (wishlist.items.length === initialLength) {

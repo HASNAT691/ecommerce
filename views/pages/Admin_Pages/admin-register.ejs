@@ -89,8 +89,8 @@
             <div class="text-center mb-4">
                 <h3 class="fw-bold" style="color: var(--text-dark);">Create Admin Account</h3>
                 <p class="text-muted small">Register dashboard admin for AL-REHAN GARMENTS</p>
-            </div>
             <form action="/admin/register" method="POST">
+                <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
                 <!-- Hidden input to carry the secret key from the URL -->
                 <input type="hidden" name="secret" value="<%= secret %>">
 
